@@ -39,6 +39,7 @@ body {
   display: flex;
   align-items: center;
   gap: 18px;
+  padding-left: 30px;
 }
 
 .brand-wrap {
@@ -57,7 +58,7 @@ body {
 .brand-text {
   display: flex;
   flex-direction: column;
-  line-height: 1.05;
+  line-height: 1.2;
 }
 
 .brand {
@@ -98,6 +99,7 @@ body {
   margin-left: auto;
   display: flex;
   gap: 10px;
+  padding-right: 30px;
 }
 
 .outline-button {
@@ -162,34 +164,43 @@ body {
 }
 
 .pizza-tile h3 {
-  margin: 0 0 8px;
-  font-size: 1rem;
+  margin: 0 0 10px;
+  font-size: 1.1rem;
+  font-weight: 700;
 }
 
 .pizza-tile p {
-  margin: 0 0 10px;
-  color: #a9a9a9;
-  font-size: 0.73rem;
-  line-height: 1.45;
-  min-height: 42px;
+  margin: 0 0 14px;
+  color: #a2a2a2;
+  font-size: 0.78rem;
+  line-height: 1.5;
+  min-height: 56px;
 }
 
 .pizza-image-wrap {
   width: 100%;
-  height: 150px;
-  border-radius: 12px;
-  background: #fbf5ef;
+  height: 220px;
+  border-radius: 24px;
+  background: #eee7df;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 12px;
+  margin-bottom: 28px;
   overflow: hidden;
+  position: relative;
 }
 
 .pizza-image {
-  max-width: 120px;
-  max-height: 120px;
+  width: 78%;
+  max-width: 190px;
+  max-height: 190px;
   object-fit: contain;
+  background: transparent;
+  filter: drop-shadow(0 14px 18px rgba(82, 52, 32, 0.2));
+}
+
+.pizza-tile {
+  max-width: 100%;
 }
 
 .pizza-bottom {
@@ -201,13 +212,19 @@ body {
 
 .pizza-bottom strong {
   font-size: 1.15rem;
+  font-weight: 700;
 }
 
 .tiny-action {
   border: none;
-  background: transparent;
+  background: #f2ede7;
   color: #ff8a4d;
-  font-size: 0.72rem;
+  font-size: 0.74rem;
+  border-radius: 14px;
+  min-width: 96px;
+  height: 34px;
+  padding: 0 14px;
+  font-weight: 600;
   cursor: pointer;
 }
 
