@@ -1,3 +1,8 @@
+"use client";
+
+import { useMemo, useState } from "react";
+import axios from "axios";
+
 const categories = ["Все", "Мясные", "Острые", "Вегетарианские", "С курицей"];
 
 const pizzas = [
@@ -7,7 +12,7 @@ const pizzas = [
       "Цыпленок, сырный соус, сыры чеддер и пармезан, орегано, соус томатный.",
     price: 1500,
     image: "/img/pizza 1.png",
-    action: "Собрать"
+    action: "Добавить"
   },
   {
     name: "Диабло",
@@ -31,11 +36,73 @@ const pizzas = [
       "Цыпленок, шампиньоны, сыры чеддер и пармезан, томатный соус.",
     price: 1500,
     image: "/img/pizza 4.png",
-    action: "Собрать"
+    action: "Добавить"
   }
 ];
 
 export default function HomePage() {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [ingredients, setIngredients] = useState([]);
+  const [selectedIngredients, setSelectedIngredients] = useState([]);
+  const [isLoadingIngredients, setIsLoadingIngredients] = useState(false);
+  const [ingredientsError, setIngredientsError] = useState("");
+
+  const selectedPreview = useMemo(
+    () => selectedIngredients.join(", "),
+    [selectedIngredients]
+  );
+
+  const normalizeIngredients = (payload) => {
+    if (Array.isArray(payload)) {
+      return payload;
+    }
+
+    if (payload?.ingredients && Array.isArray(payload.ingredients)) {
+      return payload.ingredients;
+    }
+
+    return [];
+  };
+
+  const openConstructorModal = async () => {
+    setIsModalOpen(true);
+    setIsLoadingIngredients(true);
+    setIngredientsError("");
+
+    try {
+      const response = await axios.get("/constructorpizza");
+      const normalized = normalizeIngredients(response.data).map((item) => {
+        if (typeof item === "string") {
+          return item;
+        }
+
+        return item?.name || item?.title || "Без названия";
+      });
+
+      setIngredients(normalized);
+      setSelectedIngredients([]);
+    } catch {
+      setIngredients([]);
+      setIngredientsError(
+        "Не удалось загрузить ингредиенты. Попробуйте еще раз."
+      );
+    } finally {
+      setIsLoadingIngredients(false);
+    }
+  };
+
+  const closeConstructorModal = () => {
+    setIsModalOpen(false);
+  };
+
+  const toggleIngredient = (ingredient) => {
+    setSelectedIngredients((prev) =>
+      prev.includes(ingredient)
+        ? prev.filter((item) => item !== ingredient)
+        : [...prev, ingredient]
+    );
+  };
+
   return (
     <section className="home-mock">
       <h1 className="home-title">Все пиццы</h1>
@@ -50,6 +117,13 @@ export default function HomePage() {
             {category}
           </button>
         ))}
+        <button
+          className="tiny-action tiny-action-accent chips-constructor-btn"
+          type="button"
+          onClick={openConstructorModal}
+        >
+          Собрать
+        </button>
       </div>
 
       <div className="home-grid">
@@ -73,9 +147,18 @@ export default function HomePage() {
                   <button type="button">+</button>
                 </div>
               ) : (
-                <button className="tiny-action" type="button">
-                  {pizza.action}
-                </button>
+                <div className="pizza-actions">
+                  <button className="tiny-action" type="button">
+                    {pizza.action}
+                  </button>
+                  <button
+                    className="tiny-action tiny-action-accent"
+                    type="button"
+                    onClick={openConstructorModal}
+                  >
+                    Собрать
+                  </button>
+                </div>
               )}
             </div>
           </article>
@@ -100,6 +183,83 @@ export default function HomePage() {
         </button>
         <span className="page-total">10 из 65</span>
       </div>
+
+      {isModalOpen && (
+        <div className="constructor-modal-backdrop" onClick={closeConstructorModal}>
+          <div
+            className="constructor-modal"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="constructor-modal-head">
+              <span className="constructor-modal-title">Конструктор</span>
+              <button
+                type="button"
+                className="constructor-close"
+                onClick={closeConstructorModal}
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="constructor-layout">
+              <div className="constructor-preview">
+                <div className="constructor-preview-plate">
+                  <div className="constructor-preview-pizza">
+                    Твоя пицца
+                  </div>
+                </div>
+                <p className="constructor-preview-note">
+                  Здесь будет отображаться картинка собранной пиццы.
+                </p>
+              </div>
+
+              <div className="constructor-panel">
+                <h2>Собери свою пиццу</h2>
+                <p className="constructor-subtitle">
+                  Выбери ингредиенты, и мы приготовим пиццу по твоему вкусу.
+                </p>
+
+                {isLoadingIngredients && (
+                  <p className="constructor-state">Загружаем ингредиенты...</p>
+                )}
+
+                {!isLoadingIngredients && ingredientsError && (
+                  <p className="constructor-error">{ingredientsError}</p>
+                )}
+
+                {!isLoadingIngredients && !ingredientsError && (
+                  <>
+                    <div className="ingredients-grid">
+                      {ingredients.map((ingredient) => {
+                        const isActive = selectedIngredients.includes(ingredient);
+                        return (
+                          <button
+                            key={ingredient}
+                            type="button"
+                            className={`ingredient-chip ${isActive ? "active" : ""}`}
+                            onClick={() => toggleIngredient(ingredient)}
+                          >
+                            {ingredient}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    <p className="constructor-selected">
+                      {selectedIngredients.length
+                        ? `Выбрано: ${selectedPreview}`
+                        : "Пока ничего не выбрано"}
+                    </p>
+                  </>
+                )}
+
+                <button type="button" className="constructor-order-btn">
+                  Заказать
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 }

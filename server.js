@@ -14,6 +14,21 @@ const fallbackPizzas = [
   { id: 4, name: "Цыпленок Барбекю", size: "35 см", price: 419, rating: 4.9 }
 ];
 
+const constructorIngredients = [
+  "Моцарелла",
+  "Чеддер",
+  "Пармезан",
+  "Пепперони",
+  "Курица",
+  "Бекон",
+  "Грибы",
+  "Томаты",
+  "Халапеньо",
+  "Оливки",
+  "Лук",
+  "Базилик"
+];
+
 app
   .prepare()
   .then(() => {
@@ -45,6 +60,12 @@ app
         console.error("Failed to load pizzas from DB:", error);
         return res.json(fallbackPizzas);
       }
+    });
+
+    server.get("/constructorpizza", (_req, res) => {
+      res.json({
+        ingredients: constructorIngredients
+      });
     });
 
     server.all("/{*any}", (req, res) => handle(req, res));
