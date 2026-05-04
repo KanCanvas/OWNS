@@ -1,0 +1,239 @@
+@keyframes backdropIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes modalIn {
+  from {
+    opacity: 0;
+    translate: -50% calc(-50% + 10px);
+  }
+  to {
+    opacity: 1;
+    translate: -50% -50%;
+  }
+}
+
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  background: rgba(31, 31, 31, 0.45);
+  animation: backdropIn 0.2s ease-out;
+}
+
+.dialog {
+  position: fixed;
+  z-index: 2001;
+  left: 50%;
+  top: 50%;
+  translate: -50% -50%;
+  width: min(336px, calc(100vw - 28px));
+  max-height: min(400px, calc(100vh - 40px));
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border-radius: 16px;
+  border: 1px solid #f0cfa8;
+  box-shadow:
+    0 12px 40px rgba(160, 80, 40, 0.22),
+    0 0 0 1px rgba(255, 255, 255, 0.8) inset;
+  animation: modalIn 0.22s ease-out;
+  overflow: hidden;
+  font-family: inherit;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 11px 12px 10px 14px;
+  border-bottom: 1px solid #f0e8e0;
+  background: linear-gradient(180deg, #fffdfb 0%, #fff 100%);
+}
+
+.headline {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.title {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.countBadge {
+  flex-shrink: 0;
+  min-width: 24px;
+  height: 24px;
+  padding: 0 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #fff;
+  background: linear-gradient(135deg, #ff9a5c 0%, #ff7a3d 100%);
+  border-radius: 999px;
+  box-shadow: 0 2px 6px rgba(255, 122, 61, 0.4);
+}
+
+.closeBtn {
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 10px;
+  background: #f4f0ec;
+  color: #666;
+  font-size: 1.4rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.closeBtn:hover {
+  background: #ebe6e0;
+  color: #1f1f1f;
+}
+
+.body {
+  padding: 14px 14px 16px;
+  overflow-y: auto;
+}
+
+.empty {
+  margin: 0;
+  font-size: 0.88rem;
+  color: #666;
+  line-height: 1.5;
+  text-align: center;
+  padding: 12px 6px 8px;
+}
+
+.emptyMuted {
+  color: #888;
+}
+
+.card {
+  border-radius: 14px;
+  border: 1px solid #e8ddd4;
+  background: #fff;
+  overflow: hidden;
+  box-shadow: 0 2px 14px rgba(140, 90, 50, 0.08);
+}
+
+.cardMain {
+  display: grid;
+  grid-template-columns: 72px 1fr;
+  gap: 12px 14px;
+  padding: 12px 14px 12px 12px;
+  align-items: start;
+}
+
+.thumb {
+  width: 72px;
+  height: 72px;
+  border-radius: 12px;
+  background: linear-gradient(155deg, #f3ece5 0%, #e5dcd3 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.thumbImg {
+  width: 80%;
+  height: 80%;
+  object-fit: contain;
+  filter: drop-shadow(0 6px 12px rgba(72, 48, 32, 0.22));
+}
+
+.thumbPlaceholder {
+  font-size: 1.75rem;
+  line-height: 1;
+  opacity: 0.9;
+}
+
+.info {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.titleRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.itemTitle {
+  margin: 0;
+  font-size: 0.92rem;
+  font-weight: 700;
+  line-height: 1.3;
+  color: #141414;
+  flex: 1;
+  min-width: 0;
+}
+
+.qty {
+  flex-shrink: 0;
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: #ff6b2c;
+  letter-spacing: 0.03em;
+  line-height: 1.2;
+  margin-top: 2px;
+}
+
+.desc {
+  margin: 0;
+  font-size: 0.68rem;
+  line-height: 1.4;
+  color: #8f8f8f;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.meta {
+  margin: 0;
+  font-size: 0.7rem;
+  color: #aaa;
+  letter-spacing: 0.02em;
+}
+
+.total {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 14px 11px;
+  background: linear-gradient(180deg, #fff8f2 0%, #ffefe4 100%);
+  border-top: 1px solid #edd8cc;
+  font-size: 0.8rem;
+  color: #6d6560;
+  font-weight: 600;
+}
+
+.total strong {
+  font-size: 1.02rem;
+  font-weight: 800;
+  color: #1a1a1a;
+  letter-spacing: 0.02em;
+}

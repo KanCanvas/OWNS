@@ -41,6 +41,7 @@ const pizzas = [
 ];
 
 function setWithExpiry(key, value, ttl) {
+  if (typeof window === "undefined") return;
   const now = new Date();
 
   const item = {
@@ -52,6 +53,7 @@ function setWithExpiry(key, value, ttl) {
 }
 
 function getWithExpiry(key) {
+  if (typeof window === "undefined") return null;
   const itemStr = localStorage.getItem(key);
 
   if (!itemStr) return null;
@@ -137,7 +139,9 @@ export default function HomePage() {
   };
 
   useEffect(() => {
-    setWithExpiry("countPizza", countPizza, 60 * 100);
+    if(countPizza > 0) {
+      setWithExpiry("countPizza", countPizza, 24 * 60 * 60 * 1000);
+    }
   }, [countPizza]);
 
   return (
@@ -179,9 +183,9 @@ export default function HomePage() {
               <strong>от {pizza.price}</strong>
               {pizza.counter ? (
                 <div className="counter">
-                  <button type="button" onClick={() => {getWithExpiry("countPizza") === null? setCountPizza(0) : setCountPizza(prev => prev - 1)}}>-</button>
+                  <button type="button" onClick={() => { getWithExpiry("countPizza") === null? setCountPizza(0) : setCountPizza(prev => prev - 1)}}>-</button>
                   <span>{getWithExpiry("countPizza") === null? 0 : countPizza < 0 ? 0: countPizza < 11 ? countPizza : 10}</span>
-                  {getWithExpiry("countPizza") === null? <button type="button" onClick={() => {setCountPizza(1)}}>+</button> : countPizza < 10 && <button type="button" onClick={() => {setCountPizza(prev => prev + 1)}}>+</button>}
+                  {getWithExpiry("countPizza") === null? <button type="button" onClick={() => {setCountPizza(1); localStorage.setItem("pizza", JSON.stringify(pizza))}}>+</button> : countPizza < 10 && <button type="button" onClick={() => {setCountPizza(prev => prev + 1)}}>+</button>}
                 </div>
               ) : (
                 <div className="pizza-actions">
