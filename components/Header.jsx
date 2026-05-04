@@ -1,4 +1,6 @@
 import Link from "next/link";
+import BasketModal from "./BasketModal";
+
 
 export default function Header() {
   return (
@@ -21,9 +23,7 @@ export default function Header() {
           <button className="outline-button" type="button">
             Войти
           </button>
-          <button className="outline-button icon-only" type="button">
-            🛒
-          </button>
+          <BasketModal />
         </div>
       </div>
     </header>

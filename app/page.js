@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 
 const categories = ["Все", "Мясные", "Острые", "Вегетарианские", "С курицей"];
@@ -40,12 +40,45 @@ const pizzas = [
   }
 ];
 
+function setWithExpiry(key, value, ttl) {
+  const now = new Date();
+
+  const item = {
+    value: value,
+    expiry: now.getTime() + ttl,
+  };
+
+  localStorage.setItem(key, JSON.stringify(item));
+}
+
+function getWithExpiry(key) {
+  const itemStr = localStorage.getItem(key);
+
+  if (!itemStr) return null;
+
+  const item = JSON.parse(itemStr);
+  const now = new Date();
+
+  // если время истекло
+  if (now.getTime() > item.expiry) {
+    localStorage.removeItem(key);
+    return null;
+  }
+
+  return item.value;
+}
+
 export default function HomePage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [ingredients, setIngredients] = useState([]);
   const [selectedIngredients, setSelectedIngredients] = useState([]);
   const [isLoadingIngredients, setIsLoadingIngredients] = useState(false);
   const [ingredientsError, setIngredientsError] = useState("");
+
+    const [countPizza, setCountPizza] = useState(() => {
+      const savedCount = getWithExpiry("countPizza");
+      return savedCount > 0 ? Number(savedCount) : 0;
+    });
 
   const selectedPreview = useMemo(
     () => selectedIngredients.join(", "),
@@ -103,6 +136,10 @@ export default function HomePage() {
     );
   };
 
+  useEffect(() => {
+    setWithExpiry("countPizza", countPizza, 60 * 100);
+  }, [countPizza]);
+
   return (
     <section className="home-mock">
       <h1 className="home-title">Все пиццы</h1>
@@ -142,9 +179,9 @@ export default function HomePage() {
               <strong>от {pizza.price}</strong>
               {pizza.counter ? (
                 <div className="counter">
-                  <button type="button">-</button>
-                  <span>{pizza.counter}</span>
-                  <button type="button">+</button>
+                  <button type="button" onClick={() => {getWithExpiry("countPizza") === null? setCountPizza(0) : setCountPizza(prev => prev - 1)}}>-</button>
+                  <span>{getWithExpiry("countPizza") === null? 0 : countPizza < 0 ? 0: countPizza < 11 ? countPizza : 10}</span>
+                  {getWithExpiry("countPizza") === null? <button type="button" onClick={() => {setCountPizza(1)}}>+</button> : countPizza < 10 && <button type="button" onClick={() => {setCountPizza(prev => prev + 1)}}>+</button>}
                 </div>
               ) : (
                 <div className="pizza-actions">
