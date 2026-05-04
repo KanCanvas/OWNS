@@ -149,7 +149,7 @@ export default function BasketModal() {
                   ) : null}
                   {typeof cartPizza.price === "number" ? (
                     <p className={styles.meta}>
-                      {cartPizza.price.toLocaleString("ru-RU")} ₽ × {cartCount}
+                      {cartPizza.price.toLocaleString("ru-RU")} ₸ × {cartCount}
                     </p>
                   ) : null}
                 </div>
@@ -158,7 +158,7 @@ export default function BasketModal() {
                 <div className={styles.total}>
                   <span>Итого</span>
                   <strong>
-                    {(cartPizza.price * cartCount).toLocaleString("ru-RU")} ₽
+                    {(cartPizza.price * cartCount).toLocaleString("ru-RU")} ₸
                   </strong>
                 </div>
               ) : null}
