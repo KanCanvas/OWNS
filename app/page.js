@@ -140,7 +140,7 @@ export default function HomePage() {
 
   useEffect(() => {
     if(countPizza > 0) {
-      setWithExpiry("countPizza", countPizza, 24 * 60 * 60 * 1000);
+      setWithExpiry("countPizza", countPizza, 60 * 60 * 1000);
     }
   }, [countPizza]);
 
@@ -180,7 +180,7 @@ export default function HomePage() {
             <h3>{pizza.name}</h3>
             <p>{pizza.description}</p>
             <div className="pizza-bottom">
-              <strong>от {pizza.price}</strong>
+              <strong>от {pizza.price} ₸</strong>
               {pizza.counter ? (
                 <div className="counter">
                   <button type="button" onClick={() => { getWithExpiry("countPizza") === null? setCountPizza(0) : setCountPizza(prev => prev - 1)}}>-</button>
