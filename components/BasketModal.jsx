@@ -48,6 +48,9 @@ export default function BasketModal() {
   const [mounted, setMounted] = useState(false);
   const [cartCount, setCartCount] = useState(0);
   const [cartPizza, setCartPizza] = useState(null);
+  const [isOrdering, setIsOrdering] = useState(false);
+  const [orderError, setOrderError] = useState("");
+  const [orderSuccess, setOrderSuccess] = useState("");
   const titleId = useId();
 
   useEffect(() => setMounted(true), []);
@@ -67,7 +70,47 @@ export default function BasketModal() {
 
   const openBasket = () => {
     syncCartFromStorage();
+    setOrderError("");
+    setOrderSuccess("");
     setOpen(true);
+  };
+
+  const handleOrder = async () => {
+    if (!cartPizza || cartCount <= 0) {
+      setOrderError("Корзина пуста. Добавьте пиццу перед заказом.");
+      setOrderSuccess("");
+      return;
+    }
+
+    setIsOrdering(true);
+    setOrderError("");
+    setOrderSuccess("");
+
+    try {
+      const response = await fetch("/order", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          pizza: cartPizza,
+          count: cartCount,
+          total:
+            typeof cartPizza.price === "number" ? cartPizza.price * cartCount : null,
+          createdAt: new Date().toISOString(),
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Request failed");
+      }
+
+      setOrderSuccess("Заказ отправлен. Ожидайте подтверждение.");
+    } catch {
+      setOrderError("Не удалось отправить заказ. Попробуйте еще раз.");
+    } finally {
+      setIsOrdering(false);
+    }
   };
 
   useEffect(() => {
@@ -168,6 +211,18 @@ export default function BasketModal() {
               Данные о пицце не найдены. Добавьте позицию ещё раз.
             </p>
           )}
+
+          {orderError ? <p className={styles.orderError}>{orderError}</p> : null}
+          {orderSuccess ? <p className={styles.orderSuccess}>{orderSuccess}</p> : null}
+
+          <button
+            type="button"
+            className={styles.orderBtn}
+            onClick={() => handleOrder()}
+            disabled={isOrdering}
+          >
+            {isOrdering ? "Отправляем..." : "Заказать"}
+          </button>
         </div>
       </div>
     </>
