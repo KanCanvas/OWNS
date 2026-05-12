@@ -1,4 +1,6 @@
 const path = require("path");
+const cookieParser = require("cookie-parser");
+const jwt = require("jsonwebtoken");
 
 require("dotenv").config({ path: path.join(__dirname, ".env") });
 
@@ -39,6 +41,7 @@ app
     const server = express();
 
     server.use(express.json());
+    server.use(cookieParser());
 
     if (!process.env.DATABASE_URL) {
       console.warn(
@@ -208,7 +211,60 @@ app
           error: "Не удалось зарегистрировать пользователя."
         });
       }
-    })
+    });
+
+    server.post("/api/auth/login", async (req, res) => {
+      try {
+        const { phone, smsCode } = req.body || {};
+        const normalizedPhone = String(phone || "").trim();
+        const numericSmsCode = Number(smsCode);
+        if (!normalizedPhone || !smsCode) {
+          return res.status(400).json({
+            ok: false,
+            error: "Не все данные заполнены."
+          });
+        }
+        
+        if (!Number.isFinite(numericSmsCode)) {
+          return res.status(400).json({
+            ok: false,
+            error: "Код из SMS должен быть числом."
+          });
+        }
+        const codetg = await prisma.tgcode.findFirst({
+          where: {
+            code: numericSmsCode
+          }
+        });
+        if (!codetg) {
+          return res.status(400).json({
+            ok: false,
+            error: "Неверный код."
+          });
+        }
+        const user = await prisma.user.findFirst({
+          where: {
+            phone: normalizedPhone
+          }
+        });
+        if (!user) {
+          return res.status(400).json({
+            ok: false,
+            error: "Пользователь не найден."
+          });
+        }
+
+        const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES_IN });
+
+        return res.status(200).json({ ok: true, token, user: { id: user.id, name: user.name, phone: user.phone } });
+      } catch (error) {
+        console.error("Failed to login:", error);
+        return res.status(500).json({
+          ok: false,
+          error: "Не удалось выполнить вход."
+        });
+      }
+    });
 
     server.all("/{*any}", (req, res) => handle(req, res));
 

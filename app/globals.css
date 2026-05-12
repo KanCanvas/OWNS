@@ -515,6 +515,64 @@ body {
   line-height: 1.6;
 }
 
+.account-page {
+  padding: 34px;
+}
+
+.account-card {
+  max-width: 720px;
+  border: 1px solid #ffdccc;
+  border-radius: 18px;
+  background: linear-gradient(180deg, #fff8f3 0%, #fff 100%);
+  padding: 26px;
+  box-shadow: 0 10px 24px rgba(201, 113, 59, 0.12);
+}
+
+.account-card h1 {
+  margin: 0 0 12px;
+}
+
+.account-badge {
+  display: inline-flex;
+  align-items: center;
+  height: 28px;
+  border-radius: 999px;
+  background: #fff0e7;
+  color: #ff7a36;
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 0 12px;
+  margin-bottom: 14px;
+}
+
+.account-details {
+  display: grid;
+  gap: 10px;
+  margin-top: 24px;
+}
+
+.account-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  border: 1px solid #ffe1d3;
+  border-radius: 12px;
+  background: #fff;
+  padding: 14px 16px;
+}
+
+.account-row span {
+  color: #8a786f;
+}
+
+.account-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 24px;
+  flex-wrap: wrap;
+}
+
 .error {
   color: #b80000;
 }
@@ -554,6 +612,10 @@ body {
   }
 
   .home-mock {
+    padding: 20px 16px 24px;
+  }
+
+  .account-page {
     padding: 20px 16px 24px;
   }
 

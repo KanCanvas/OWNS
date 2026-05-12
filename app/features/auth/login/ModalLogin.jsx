@@ -4,10 +4,14 @@ import styles from "./ModalLogin.module.css";
 import { useForm } from "react-hook-form";
 import { ComponentRegister } from "../register/ComponentRegister";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import axios from "axios";
+import { saveAuthSession } from "../../../../lib/auth-storage";
 
 export default function ModalLogin({ isOpen, onClose }) {
   const { register, handleSubmit, reset } = useForm();
   const telegramBotUrl = "https://t.me/OwnPizza_auth_bot";
+  const router = useRouter();
 
   const [stateAuth, setStateAuth] = useState(false);
   const [loginMethod, setLoginMethod] = useState(null);
@@ -18,8 +22,29 @@ export default function ModalLogin({ isOpen, onClose }) {
 
   if (!isOpen) return null;
 
-  const onSubmit = (data) => {
-    alert(JSON.stringify(data));
+  const onSubmit = async (data) => {
+    try {
+      const response = await axios.post("/api/auth/login", data);
+      console.log("Полный ответ:", response);
+      console.log("Данные от сервера:", response.data);
+      console.log("Статус:", response.status);
+      if (response.status === 200 || response.status === 201) {
+        const { token, user } = response.data;
+        saveAuthSession({ token, user });
+        reset();
+        onClose?.();
+        router.push("/account");
+      }
+    } catch (error) {
+      console.error("Failed to login:", error);
+      if (error.response) {
+        console.log("Ответ сервера с ошибкой:", error.response.data);
+        console.log("Статус ошибки:", error.response.status);
+        alert(error.response.data.error);
+      } else {
+        alert("Ошибка при входе");
+      }
+    }
   };
 
   return (

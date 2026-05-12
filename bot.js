@@ -1,6 +1,6 @@
 require("dotenv").config();
 const { Telegraf } = require('telegraf');
-const { PrismaClient } = require('@prisma/client');
+const { PrismaClient } = require('./generated/prisma');
 
 const prisma = new PrismaClient();
 function generateCode(length = 6) {

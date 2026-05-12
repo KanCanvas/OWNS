@@ -1,0 +1,51 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Pizza {
+  id        Int      @id @default(autoincrement())
+  name      String
+  size      String
+  price     Int
+  rating    Float
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([name, size], name: "name_size")
+}
+
+enum PaymentMethod {
+  CASH
+  KASPI
+}
+
+model Order {
+  id            Int           @id @default(autoincrement())
+  pizzaId       Int?
+  pizzaName     String
+  pizzaSize     String?
+  pizzaPrice    Int?
+  count         Int
+  total         Int
+  paymentMethod PaymentMethod
+  createdAt     DateTime      @default(now())
+}
+
+model Tgcode {
+  id        Int      @id @default(autoincrement())
+  code      Int
+  createdAt DateTime @default(now())
+}
+
+model User {
+  id      Int    @id @default(autoincrement())
+  name    String
+  phone   String
+  smsCode Int
+}

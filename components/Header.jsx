@@ -1,12 +1,30 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import BasketModal from "./BasketModal";
 import ModalLogin from "@/app/features/auth/login/ModalLogin";
+import { AUTH_CHANGE_EVENT, getStoredUser } from "../lib/auth-storage";
 
 export default function Header() {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
+
+  useEffect(() => {
+    const syncAuthState = () => {
+      setCurrentUser(getStoredUser());
+    };
+
+    syncAuthState();
+    window.addEventListener(AUTH_CHANGE_EVENT, syncAuthState);
+    window.addEventListener("storage", syncAuthState);
+
+    return () => {
+      window.removeEventListener(AUTH_CHANGE_EVENT, syncAuthState);
+      window.removeEventListener("storage", syncAuthState);
+    };
+  }, []);
+
   return (
     <header className="header">
       <div className="container header-inner">
@@ -24,13 +42,19 @@ export default function Header() {
         </label>
 
         <div className="header-actions">
-          <button
-            className="outline-button"
-            type="button"
-            onClick={() => setIsModalOpen(true)}
-          >
-            Войти
-          </button>
+          {currentUser ? (
+            <Link href="/account" className="outline-button">
+              {currentUser.name || "Аккаунт"}
+            </Link>
+          ) : (
+            <button
+              className="outline-button"
+              type="button"
+              onClick={() => setIsModalOpen(true)}
+            >
+              Войти
+            </button>
+          )}
           <BasketModal />
           <ModalLogin isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
         </div>
