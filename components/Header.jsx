@@ -1,8 +1,12 @@
-import Link from "next/link";
-import BasketModal from "./BasketModal";
+"use client";
 
+import Link from "next/link";
+import { useState } from "react";
+import BasketModal from "./BasketModal";
+import ModalLogin from "@/app/features/auth/login/ModalLogin";
 
 export default function Header() {
+  const [isModalOpen, setIsModalOpen] = useState(false);
   return (
     <header className="header">
       <div className="container header-inner">
@@ -20,10 +24,15 @@ export default function Header() {
         </label>
 
         <div className="header-actions">
-          <button className="outline-button" type="button">
+          <button
+            className="outline-button"
+            type="button"
+            onClick={() => setIsModalOpen(true)}
+          >
             Войти
           </button>
           <BasketModal />
+          <ModalLogin isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
         </div>
       </div>
     </header>

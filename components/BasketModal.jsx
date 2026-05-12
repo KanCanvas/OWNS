@@ -51,6 +51,7 @@ export default function BasketModal() {
   const [isOrdering, setIsOrdering] = useState(false);
   const [orderError, setOrderError] = useState("");
   const [orderSuccess, setOrderSuccess] = useState("");
+  const [paymentMethod, setPaymentMethod] = useState("CASH");
   const titleId = useId();
 
   useEffect(() => setMounted(true), []);
@@ -82,6 +83,12 @@ export default function BasketModal() {
       return;
     }
 
+    if (paymentMethod !== "CASH" && paymentMethod !== "KASPI") {
+      setOrderError("Выберите способ оплаты: наличные или Kaspi.");
+      setOrderSuccess("");
+      return;
+    }
+
     setIsOrdering(true);
     setOrderError("");
     setOrderSuccess("");
@@ -97,17 +104,35 @@ export default function BasketModal() {
           count: cartCount,
           total:
             typeof cartPizza.price === "number" ? cartPizza.price * cartCount : null,
+          paymentMethod,
           createdAt: new Date().toISOString(),
         }),
       });
 
-      if (!response.ok) {
-        throw new Error("Request failed");
+      let payload = null;
+      try {
+        payload = await response.json();
+      } catch {
+        payload = null;
       }
 
-      setOrderSuccess("Заказ отправлен. Ожидайте подтверждение.");
-    } catch {
-      setOrderError("Не удалось отправить заказ. Попробуйте еще раз.");
+      if (!response.ok || !payload?.ok) {
+        const message =
+          payload?.error || `Сервер ответил ${response.status}. Попробуйте позже.`;
+        throw new Error(message);
+      }
+
+      setOrderSuccess(
+        paymentMethod === "KASPI"
+          ? "Заказ отправлен. Оплата через Kaspi при получении."
+          : "Заказ отправлен. Оплата наличными при получении."
+      );
+    } catch (error) {
+      const message =
+        error instanceof Error && error.message
+          ? error.message
+          : "Не удалось отправить заказ. Попробуйте еще раз.";
+      setOrderError(message);
     } finally {
       setIsOrdering(false);
     }
@@ -212,6 +237,42 @@ export default function BasketModal() {
             </p>
           )}
 
+          {cartCount > 0 && cartPizza ? (
+            <div
+              className={styles.payment}
+              role="radiogroup"
+              aria-label="Способ оплаты при получении"
+            >
+              <span className={styles.paymentLabel}>Оплата при получении:</span>
+              <div className={styles.paymentOptions}>
+                <button
+                  type="button"
+                  role="radio"
+                  aria-checked={paymentMethod === "CASH"}
+                  className={`${styles.payBtn} ${
+                    paymentMethod === "CASH" ? styles.payBtnActive : ""
+                  }`}
+                  onClick={() => setPaymentMethod("CASH")}
+                  disabled={isOrdering}
+                >
+                  💵 Наличные
+                </button>
+                <button
+                  type="button"
+                  role="radio"
+                  aria-checked={paymentMethod === "KASPI"}
+                  className={`${styles.payBtn} ${
+                    paymentMethod === "KASPI" ? styles.payBtnActive : ""
+                  }`}
+                  onClick={() => setPaymentMethod("KASPI")}
+                  disabled={isOrdering}
+                >
+                  📱 Kaspi перевод
+                </button>
+              </div>
+            </div>
+          ) : null}
+
           {orderError ? <p className={styles.orderError}>{orderError}</p> : null}
           {orderSuccess ? <p className={styles.orderSuccess}>{orderSuccess}</p> : null}
 
@@ -219,7 +280,7 @@ export default function BasketModal() {
             type="button"
             className={styles.orderBtn}
             onClick={() => handleOrder()}
-            disabled={isOrdering}
+            disabled={isOrdering || cartCount <= 0 || !cartPizza}
           >
             {isOrdering ? "Отправляем..." : "Заказать"}
           </button>

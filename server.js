@@ -1,3 +1,7 @@
+const path = require("path");
+
+require("dotenv").config({ path: path.join(__dirname, ".env") });
+
 const express = require("express");
 const next = require("next");
 const prisma = require("./lib/prisma");
@@ -36,6 +40,12 @@ app
 
     server.use(express.json());
 
+    if (!process.env.DATABASE_URL) {
+      console.warn(
+        "[OWNpizza] DATABASE_URL не задан. Создайте файл .env (см. .env.example) и поднимите Postgres: docker compose up -d"
+      );
+    }
+
     server.get("/api/health", (_req, res) => {
       res.json({
         ok: true,
@@ -67,6 +77,138 @@ app
         ingredients: constructorIngredients
       });
     });
+
+    server.post("/order", async (req, res) => {
+      try {
+        const { pizza, count, total, paymentMethod } = req.body || {};
+
+        const numericCount = Number(count);
+        if (!pizza || !Number.isFinite(numericCount) || numericCount <= 0) {
+          return res
+            .status(400)
+            .json({ ok: false, error: "Корзина пуста или данные некорректны." });
+        }
+
+        const allowedMethods = new Set(["CASH", "KASPI"]);
+        const normalizedMethod = String(paymentMethod || "").toUpperCase();
+        if (!allowedMethods.has(normalizedMethod)) {
+          return res.status(400).json({
+            ok: false,
+            error: "Выберите способ оплаты: наличные или Kaspi."
+          });
+        }
+
+        const pizzaPrice =
+          typeof pizza.price === "number" && Number.isFinite(pizza.price)
+            ? Math.round(pizza.price)
+            : null;
+
+        const computedTotal =
+          typeof total === "number" && Number.isFinite(total)
+            ? Math.round(total)
+            : pizzaPrice !== null
+              ? pizzaPrice * numericCount
+              : 0;
+
+        const order = await prisma.order.create({
+          data: {
+            pizzaId:
+              typeof pizza.id === "number" && Number.isFinite(pizza.id)
+                ? pizza.id
+                : null,
+            pizzaName: String(pizza.name || "Без названия"),
+            pizzaSize: pizza.size ? String(pizza.size) : null,
+            pizzaPrice,
+            count: numericCount,
+            total: computedTotal,
+            paymentMethod: normalizedMethod
+          }
+        });
+
+        return res.status(201).json({ ok: true, order });
+      } catch (error) {
+        console.error("Failed to save order:", error);
+        const msg = String(error?.message || "");
+        const isDbUrl =
+          msg.includes("DATABASE_URL") ||
+          error?.name === "PrismaClientInitializationError";
+        const isConnection =
+          msg.includes("Can't reach database server") ||
+          msg.includes("P1001");
+        return res.status(500).json({
+          ok: false,
+          error: isDbUrl
+            ? "База не настроена: в корне проекта нужен файл .env с DATABASE_URL (см. .env.example)."
+            : isConnection
+              ? "Не удаётся подключиться к PostgreSQL. Запустите Docker и выполните: docker compose up -d"
+              : "Не удалось сохранить заказ."
+        });
+      }
+    });
+    server.post("/api/auth/register", async (req, res) => {
+      try {
+        const {name, phone, smsCode } = req.body || {};
+        const normalizedName = String(name || "").trim();
+        const normalizedPhone = String(phone || "").trim();
+        const numericSmsCode = Number(smsCode);
+
+        if (!normalizedName || !normalizedPhone || !smsCode) {
+          return res.status(400).json({
+            ok: false,
+            error: "Не все данные заполнены."
+          });
+        }
+
+        if (!Number.isFinite(numericSmsCode)) {
+          return res.status(400).json({
+            ok: false,
+            error: "Код из SMS должен быть числом."
+          });
+        }
+
+        const codetg = await prisma.tgcode.findFirst({
+          where: {
+            code: numericSmsCode
+          }
+        });
+
+        if (!codetg) {
+          return res.status(400).json({
+            ok: false,
+            error: "Неверный код."
+          });
+        }
+
+        const existingUser = await prisma.user.findFirst({
+          where: {
+            phone: normalizedPhone
+          }
+        });
+
+        if (existingUser) {
+          return res.status(400).json({
+            ok: false,
+            error: "Пользователь с этим номером уже зарегистрирован."
+          });
+        }
+        
+        const users = await prisma.user.create({
+          data: {
+            name: normalizedName,
+            phone: normalizedPhone,
+            smsCode: numericSmsCode
+          }
+        });
+        
+        return res.status(201).json({ ok: true, user: users });
+      } catch (error) {
+        console.error("Failed to register user:", error);
+        return res.status(500).json({
+          ok: false,
+          error: "Не удалось зарегистрировать пользователя."
+        });
+      }
+    })
 
     server.all("/{*any}", (req, res) => handle(req, res));
 
