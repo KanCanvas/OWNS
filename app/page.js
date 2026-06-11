@@ -109,15 +109,15 @@ export default function HomePage() {
   const getPizzaCount = (pizzaId) => {
     const rawCount = cartItems[pizzaId]?.count ?? 0;
     const safeCount = Number(rawCount);
-    if (!Number.isFinite(safeCount) || safeCount <= 0){
-      localStorage.setItem("cartElements", JSON.stringify({}));
-      return 0
-    };
+    if (!Number.isFinite(safeCount) || safeCount <= 0) return 0;
     return safeCount > 10 ? 10 : safeCount;
   };
-  
+
   const getPizzaLocal = (pizzaId) => {
-    const rawCount = JSON.parse(localStorage.getItem("cartElements") || "{}")[pizzaId]?.count ?? 0;
+    if (typeof window === "undefined") return 0;
+    const rawCount =
+      JSON.parse(localStorage.getItem("cartElements") || "{}")[pizzaId]?.count ??
+      0;
     const safeCount = Number(rawCount);
     if (!Number.isFinite(safeCount) || safeCount <= 0) return 0;
     return safeCount > 10 ? 10 : safeCount;
@@ -186,13 +186,11 @@ export default function HomePage() {
   }, []);
 
   useEffect(() => {
-    setWithExpiry(
-      "cartItems",
-      cartItems,
-      60 * 60 * 1000
-    );
+    if (typeof window === "undefined") return;
 
-    if(Object.keys(cartItems).length > 0) {
+    setWithExpiry("cartItems", cartItems, 60 * 60 * 1000);
+
+    if (Object.keys(cartItems).length > 0) {
       localStorage.setItem("cartElements", JSON.stringify(cartItems));
       setTimeout(() => {
         localStorage.removeItem("cartElements");
@@ -203,13 +201,12 @@ export default function HomePage() {
   }, [cartItems]);
 
   useEffect(() => {
-    if(Object.keys(cartItem).length !== 0){
+    if (typeof window === "undefined") return;
+
+    if (Object.keys(cartItem).length !== 0) {
       setCartItems({});
       localStorage.removeItem("cartElements");
       localStorage.removeItem("cartItems");
-    }
-    else {
-      return;
     }
   }, [cartItem]);
 
