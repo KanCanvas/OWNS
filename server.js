@@ -15,10 +15,11 @@ const app = next({ dev });
 const handle = app.getRequestHandler();
 
 const fallbackPizzas = [
-  { id: 1, name: "Маргарита", size: "30 см", price: 249, rating: 4.7 },
-  { id: 2, name: "Пепперони", size: "35 см", price: 339, rating: 4.9 },
-  { id: 3, name: "4 Сыра", size: "30 см", price: 379, rating: 4.8 },
-  { id: 4, name: "Цыпленок Барбекю", size: "35 см", price: 419, rating: 4.9 }
+  { id: 1, name: "Маргарита", size: "30 см", price: 2000, rating: 4.7 },
+  { id: 2, name: "Пепперони", size: "30 см", price: 2000, rating: 4.9 },
+  { id: 3, name: "Пепперони фреш", size: "30 см", price: 2000, rating: 4.8 },
+  { id: 4, name: "Ветчина и грибы", size: "30 см", price: 2000, rating: 4.8 },
+  { id: 5, name: "4 сезона", size: "30 см", price: 2000, rating: 4.9 }
 ];
 
 const constructorIngredients = [

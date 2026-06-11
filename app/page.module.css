@@ -1,0 +1,117 @@
+.grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 34px;
+}
+
+.card {
+  border-radius: 16px;
+  overflow: hidden;
+  background: #fff;
+  border: 1px solid #f0e8e0;
+}
+
+.imageBlock {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 860 / 710;
+  overflow: hidden;
+  background: #111;
+  line-height: 0;
+}
+
+.imageBlock img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+}
+
+.body {
+  padding: 10px 12px 12px;
+}
+
+.body h3 {
+  margin: 0 0 6px;
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.body p {
+  margin: 0 0 10px;
+  color: #a2a2a2;
+  font-size: 0.68rem;
+  line-height: 1.4;
+}
+
+.bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.bottom strong {
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+@media (max-width: 1100px) {
+  .grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+  }
+}
+
+@media (max-width: 740px) {
+  .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    margin-bottom: 24px;
+  }
+
+  .card {
+    border-radius: 14px;
+  }
+
+  .body {
+    padding: 10px 10px 12px;
+  }
+
+  .body h3 {
+    font-size: 0.88rem;
+  }
+
+  .body p {
+    font-size: 0.65rem;
+    margin-bottom: 8px;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .bottom strong {
+    font-size: 0.88rem;
+  }
+}
+
+@media (max-width: 400px) {
+  .grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .body h3 {
+    font-size: 0.95rem;
+  }
+
+  .body p {
+    font-size: 0.72rem;
+    -webkit-line-clamp: unset;
+  }
+}

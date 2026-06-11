@@ -7,6 +7,13 @@ export const metadata = {
   description: "Веб приложение пиццерии OWNpizza"
 };
 
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: "#ff8a4d"
+};
+
 export default function RootLayout({ children }) {
   return (
     <html lang="ru">

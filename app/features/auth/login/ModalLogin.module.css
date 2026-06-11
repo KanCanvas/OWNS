@@ -545,3 +545,44 @@
   outline: 2px solid #ff8a4d;
   outline-offset: 2px;
 }
+
+@media (max-width: 740px) {
+  .dialog {
+    width: 100%;
+    max-height: calc(100dvh - env(safe-area-inset-top));
+    border-radius: 20px 20px 0 0;
+    top: auto;
+    bottom: 0;
+    translate: none;
+    left: 0;
+    right: 0;
+  }
+
+  .head {
+    padding: 24px 18px 16px;
+  }
+
+  .title {
+    font-size: 1.25rem;
+  }
+
+  .tabs {
+    margin: 14px 16px 0;
+  }
+
+  .form {
+    padding: 16px 16px calc(20px + env(safe-area-inset-bottom));
+  }
+
+  .input,
+  .primaryBtn,
+  .methodOption,
+  .socialBtn {
+    min-height: 48px;
+  }
+
+  .closeBtn {
+    width: 40px;
+    height: 40px;
+  }
+}

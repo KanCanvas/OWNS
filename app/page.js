@@ -1,46 +1,57 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useContext } from "react";
 import axios from "axios";
 import { CartContext } from "./context/CartProvider";
-import { useContext } from "react";
+import styles from "./page.module.css";
 
 const categories = ["Все", "Мясные", "Острые", "Вегетарианские", "С курицей"];
 
 const pizzas = [
   {
     id: "pizza-1",
-    name: "Сырный цыпленок",
+    name: "Маргарита",
     description:
-      "Цыпленок, сырный соус, сыры чеддер и пармезан, орегано, соус томатный.",
+      "Томатный соус, моцарелла, свежий базилик, оливковое масло.",
     price: 2000,
-    image: "/img/pizza 1.png",
+    image: "/img/margarita.png",
     action: "Добавить",
   },
   {
     id: "pizza-2",
-    name: "Диабло",
+    name: "Пепперони",
     description:
-      "Острая чоризо, острый перец халапеньо, соус барбекю, томаты, моцарелла.",
+      "Томатный соус, моцарелла, пепперони, орегано.",
     price: 2000,
-    image: "/img/pizza 2.png",
+    image: "/img/pepperoni.png",
     action: "Добавить",
   },
   {
     id: "pizza-3",
-    name: "Чизбургер-пицца",
+    name: "Пепперони фреш",
     description:
-      "Мясной соус болоньезе бургер, моцарелла и фирменный томатный соус.",
+      "Томатный соус, моцарелла, пепперони, свежие томаты, руккола.",
     price: 2000,
-    image: "/img/pizza 3.png",
+    image: "/img/pepperoni-fresh.png",
+    action: "Добавить",
   },
   {
     id: "pizza-4",
-    name: "Сырный цыпленок",
+    name: "Ветчина и грибы",
     description:
-      "Цыпленок, шампиньоны, сыры чеддер и пармезан, томатный соус.",
+      "Сливочный соус, моцарелла, ветчина, шампиньоны, сыр пармезан.",
     price: 2000,
-    image: "/img/pizza 4.png",
+    image: "/img/ham-mushrooms.png",
+    action: "Добавить",
+  },
+  {
+    id: "pizza-5",
+    name: "4 сезона",
+    description:
+      "Томатный соус, моцарелла, ветчина, грибы, артишоки, оливки.",
+    price: 2000,
+    image: "/img/four-seasons.png",
+    action: "Добавить",
   },
 ];
 
@@ -269,32 +280,34 @@ export default function HomePage() {
         </button>
       </div>
 
-      <div className="home-grid">
+      <div className={styles.grid}>
         {pizzas.map((pizza) => (
-          <article key={pizza.id} className="pizza-tile">
-            <div className="pizza-image-wrap">
-              <img
-                src={pizza.image}
-                alt={pizza.name}
-                className="pizza-image"
-              />
+          <article key={pizza.id} className={styles.card}>
+            <div className={styles.imageBlock}>
+              <img src={pizza.image} alt={pizza.name} />
             </div>
-            <h3>{pizza.name}</h3>
-            <p>{pizza.description}</p>
-            <div className="pizza-bottom">
-              <strong>от {pizza.price} ₸</strong>
-              <div className="counter">
-                <button type="button" onClick={() => decrementPizza(pizza)}>
-                  -
-                </button>
-                <span>{getPizzaCount(pizza.id) === 0 ? getPizzaLocal(pizza.id): getPizzaCount(pizza.id)}</span>
-                <button
-                  type="button"
-                  disabled={getPizzaCount(pizza.id) >= 10}
-                  onClick={() => incrementPizza(pizza)}
-                >
-                  +
-                </button>
+            <div className={styles.body}>
+              <h3>{pizza.name}</h3>
+              <p>{pizza.description}</p>
+              <div className={styles.bottom}>
+                <strong>от {pizza.price} ₸</strong>
+                <div className="counter">
+                  <button type="button" onClick={() => decrementPizza(pizza)}>
+                    -
+                  </button>
+                  <span>
+                    {getPizzaCount(pizza.id) === 0
+                      ? getPizzaLocal(pizza.id)
+                      : getPizzaCount(pizza.id)}
+                  </span>
+                  <button
+                    type="button"
+                    disabled={getPizzaCount(pizza.id) >= 10}
+                    onClick={() => incrementPizza(pizza)}
+                  >
+                    +
+                  </button>
+                </div>
               </div>
             </div>
           </article>

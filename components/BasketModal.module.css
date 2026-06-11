@@ -461,3 +461,63 @@
   font-size: 0.8rem;
   color: #2a7f3f;
 }
+
+@media (max-width: 740px) {
+  .backdrop {
+    background: rgba(31, 31, 31, 0.55);
+  }
+
+  .dialog {
+    left: 0;
+    right: 0;
+    top: auto;
+    bottom: 0;
+    translate: none;
+    width: 100%;
+    min-height: auto;
+    max-height: min(92dvh, calc(100dvh - env(safe-area-inset-top)));
+    border-radius: 20px 20px 0 0;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .header {
+    padding: 12px 14px 10px;
+  }
+
+  .body {
+    padding: 12px 14px calc(16px + env(safe-area-inset-bottom));
+  }
+
+  .deliveryRow {
+    grid-template-columns: 1fr;
+  }
+
+  .deliveryTab,
+  .deliveryInput,
+  .payBtn,
+  .orderBtn {
+    min-height: 44px;
+  }
+
+  .closeBtn {
+    width: 40px;
+    height: 40px;
+  }
+}
+
+@media (max-width: 400px) {
+  .paymentOptions {
+    grid-template-columns: 1fr;
+  }
+
+  .cardMain {
+    grid-template-columns: 64px 1fr;
+    gap: 10px;
+    padding: 10px 12px;
+  }
+
+  .thumb {
+    width: 64px;
+    height: 64px;
+  }
+}
