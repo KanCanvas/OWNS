@@ -7,6 +7,7 @@ require("dotenv").config({ path: path.join(__dirname, ".env") });
 const express = require("express");
 const next = require("next");
 const prisma = require("./lib/prisma");
+const { buildOrderItemsWithGift } = require("./lib/promo");
 const { compare } = require("bcryptjs");
 
 const port = Number(process.env.PORT) || 3000;
@@ -15,11 +16,11 @@ const app = next({ dev });
 const handle = app.getRequestHandler();
 
 const fallbackPizzas = [
-  { id: 1, name: "Маргарита", size: "30 см", price: 2000, rating: 4.7 },
-  { id: 2, name: "Пепперони", size: "30 см", price: 2000, rating: 4.9 },
-  { id: 3, name: "Пепперони фреш", size: "30 см", price: 2000, rating: 4.8 },
-  { id: 4, name: "Ветчина и грибы", size: "30 см", price: 2000, rating: 4.8 },
-  { id: 5, name: "4 сезона", size: "30 см", price: 2000, rating: 4.9 }
+  { id: 1, name: "Маргарита", size: "30 см", price: 1790, rating: 4.7 },
+  { id: 2, name: "Пепперони", size: "30 см", price: 1890, rating: 4.9 },
+  { id: 3, name: "Пепперони фреш", size: "30 см", price: 1890, rating: 4.8 },
+  { id: 4, name: "Ветчина и грибы", size: "30 см", price: 1890, rating: 4.8 },
+  { id: 5, name: "4 сезона", size: "30 см", price: 2190, rating: 4.9 }
 ];
 
 const constructorIngredients = [
@@ -149,21 +150,25 @@ app
           });
         }
 
+        const orderItems = buildOrderItemsWithGift(pizza);
+
         const orders = [];
-        for (let i = 0; i < pizza.length; i++) {
-          const item = pizza[i];
+        for (let i = 0; i < orderItems.length; i++) {
+          const item = orderItems[i];
           if (!item) continue;
 
           const itemCount = Number(item.count);
           if (!Number.isFinite(itemCount) || itemCount <= 0) continue;
 
           const pizzaPrice =
-            typeof item.price === "number" && Number.isFinite(item.price)
-              ? Math.round(item.price)
-              : null;
+            item.isGift
+              ? 0
+              : typeof item.price === "number" && Number.isFinite(item.price)
+                ? Math.round(item.price)
+                : null;
 
           const itemTotal =
-            pizzaPrice !== null ? pizzaPrice * itemCount : 0;
+            item.isGift ? 0 : pizzaPrice !== null ? pizzaPrice * itemCount : 0;
 
           const order = await prisma.order.create({
             data: {
@@ -172,7 +177,9 @@ app
                   ? item.id
                   : null,
               userId: String(userId),
-              pizzaName: String(item.name || "Без названия"),
+              pizzaName: item.isGift
+                ? `${String(item.name || "Подарок")} 🎁`
+                : String(item.name || "Без названия"),
               pizzaSize: item.size ? String(item.size) : null,
               pizzaPrice,
               count: itemCount,

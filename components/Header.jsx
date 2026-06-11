@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import BasketModal from "./BasketModal";
 import ModalLogin from "@/app/features/auth/login/ModalLogin";
+import PizzaSearch from "./PizzaSearch";
 import { AUTH_CHANGE_EVENT, getStoredUser } from "../lib/auth-storage";
 
 export default function Header() {
@@ -42,10 +43,7 @@ export default function Header() {
           </span>
         </Link>
 
-        <label className="search-wrap" aria-label="Поиск пиццы">
-          <span className="search-icon">⌕</span>
-          <input className="search-input" placeholder="Поиск пиццы..." />
-        </label>
+        <PizzaSearch />
 
         <div className="header-actions">
           {currentUser ? (

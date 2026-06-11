@@ -3,57 +3,12 @@
 import { useEffect, useMemo, useState, useContext } from "react";
 import axios from "axios";
 import { CartContext } from "./context/CartProvider";
+import { useSearch } from "./context/SearchProvider";
 import styles from "./page.module.css";
+import { formatPrice } from "../lib/formatPrice";
 
 const categories = ["Все", "Мясные", "Острые", "Вегетарианские", "С курицей"];
 
-const pizzas = [
-  {
-    id: "pizza-1",
-    name: "Маргарита",
-    description:
-      "Томатный соус, моцарелла, свежий базилик, оливковое масло.",
-    price: 2000,
-    image: "/img/margarita.png",
-    action: "Добавить",
-  },
-  {
-    id: "pizza-2",
-    name: "Пепперони",
-    description:
-      "Томатный соус, моцарелла, пепперони, орегано.",
-    price: 2000,
-    image: "/img/pepperoni.png",
-    action: "Добавить",
-  },
-  {
-    id: "pizza-3",
-    name: "Пепперони фреш",
-    description:
-      "Томатный соус, моцарелла, пепперони, свежие томаты, руккола.",
-    price: 2000,
-    image: "/img/pepperoni-fresh.png",
-    action: "Добавить",
-  },
-  {
-    id: "pizza-4",
-    name: "Ветчина и грибы",
-    description:
-      "Сливочный соус, моцарелла, ветчина, шампиньоны, сыр пармезан.",
-    price: 2000,
-    image: "/img/ham-mushrooms.png",
-    action: "Добавить",
-  },
-  {
-    id: "pizza-5",
-    name: "4 сезона",
-    description:
-      "Томатный соус, моцарелла, ветчина, грибы, артишоки, оливки.",
-    price: 2000,
-    image: "/img/four-seasons.png",
-    action: "Добавить",
-  },
-];
 
 function setWithExpiry(key, value, ttl) {
   if (typeof window === "undefined") return;
@@ -85,6 +40,7 @@ function getWithExpiry(key) {
 }
 
 export default function HomePage() {
+  const { filteredPizzas, pizzas, searchQuery } = useSearch();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [ingredients, setIngredients] = useState([]);
   const [selectedIngredients, setSelectedIngredients] = useState([]);
@@ -281,16 +237,18 @@ export default function HomePage() {
       </div>
 
       <div className={styles.grid}>
-        {pizzas.map((pizza) => (
+        {filteredPizzas.length > 0 ? (
+          filteredPizzas.map((pizza) => (
           <article key={pizza.id} className={styles.card}>
             <div className={styles.imageBlock}>
               <img src={pizza.image} alt={pizza.name} />
             </div>
             <div className={styles.body}>
               <h3>{pizza.name}</h3>
+              <p className={styles.size}>{pizza.size}</p>
               <p>{pizza.description}</p>
               <div className={styles.bottom}>
-                <strong>от {pizza.price} ₸</strong>
+                <strong>{formatPrice(pizza.price)} ₸</strong>
                 <div className="counter">
                   <button type="button" onClick={() => decrementPizza(pizza)}>
                     -
@@ -311,7 +269,12 @@ export default function HomePage() {
               </div>
             </div>
           </article>
-        ))}
+          ))
+        ) : (
+          <p className={styles.emptySearch}>
+            По запросу «{searchQuery}» ничего не найдено.
+          </p>
+        )}
       </div>
 
       {isModalOpen && (

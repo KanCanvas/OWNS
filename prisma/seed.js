@@ -4,11 +4,11 @@ const prisma = new PrismaClient();
 
 async function main() {
   const pizzas = [
-    { name: "Маргарита", size: "30 см", price: 2000, rating: 4.7 },
-    { name: "Пепперони", size: "30 см", price: 2000, rating: 4.9 },
-    { name: "Пепперони фреш", size: "30 см", price: 2000, rating: 4.8 },
-    { name: "Ветчина и грибы", size: "30 см", price: 2000, rating: 4.8 },
-    { name: "4 сезона", size: "30 см", price: 2000, rating: 4.9 }
+    { name: "Маргарита", size: "30 см", price: 1790, rating: 4.7 },
+    { name: "Пепперони", size: "30 см", price: 1890, rating: 4.9 },
+    { name: "Пепперони фреш", size: "30 см", price: 1890, rating: 4.8 },
+    { name: "Ветчина и грибы", size: "30 см", price: 1890, rating: 4.8 },
+    { name: "4 сезона", size: "30 см", price: 2190, rating: 4.9 }
   ];
 
   for (const pizza of pizzas) {

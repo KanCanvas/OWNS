@@ -7,6 +7,12 @@ import { getStoredUser } from "../lib/auth-storage";
 import { CartContext } from "@/app/context/CartProvider";
 import { useContext } from "react";
 import modelUserAddress from "../app/features/userData/userAddress/modelUserAddres"
+import {
+  PROMO_COLA_GIFT,
+  PROMO_MIN_PIZZAS,
+  buildOrderItemsWithGift,
+  qualifiesForColaGift,
+} from "../lib/promo";
 
 
 function getWithExpiry(key) {
@@ -142,6 +148,7 @@ export default function BasketModal({ onRequireLogin }) {
     (sum, item) => sum + (typeof item.price === "number" ? item.price * item.count : 0),
     0
   );
+  const hasColaGift = qualifiesForColaGift(cartItems);
 
   const handleOrder = async () => {
     if (cartItems.length === 0 || cartCount <= 0) {
@@ -171,6 +178,7 @@ export default function BasketModal({ onRequireLogin }) {
     try {
       setCartItem(cartItems);
       const token = localStorage.getItem("token");
+      const orderItems = buildOrderItemsWithGift(cartItems);
       const response = await fetch("/order", {
         method: "POST",
         headers: {
@@ -178,8 +186,7 @@ export default function BasketModal({ onRequireLogin }) {
           "Authorization": `Bearer ${token}`,
         },
         body: JSON.stringify({
-          // Оставляем старые поля для совместимости с текущим backend /order.
-          pizza: cartItems || null,
+          pizza: orderItems,
           count: cartCount,
           total: cartTotal,
           paymentMethod,
@@ -206,9 +213,10 @@ export default function BasketModal({ onRequireLogin }) {
       }
 
       setOrderSuccess(
-        paymentMethod === "KASPI"
-          ? "Заказ отправлен. Оплата через Kaspi при получении."
-          : "Заказ отправлен. Оплата наличными при получении."
+        (hasColaGift ? "Заказ отправлен. Кола 1 л добавлена в подарок! " : "") +
+          (paymentMethod === "KASPI"
+            ? "Оплата через Kaspi при получении."
+            : "Оплата наличными при получении.")
       );
     } catch (error) {
       const message =
@@ -311,6 +319,9 @@ export default function BasketModal({ onRequireLogin }) {
                         <h3 className={styles.itemTitle}>{item.name}</h3>
                         <span className={styles.qty}>×{item.count}</span>
                       </div>
+                      {item.size ? (
+                        <p className={styles.meta}>{item.size}</p>
+                      ) : null}
                       {item.description ? (
                         <p className={styles.desc}>{item.description}</p>
                       ) : null}
@@ -323,6 +334,34 @@ export default function BasketModal({ onRequireLogin }) {
                   </div>
                 </article>
               ))}
+
+              {hasColaGift ? (
+                <article className={`${styles.card} ${styles.giftCard}`}>
+                  <div className={styles.cardMain}>
+                    <div className={`${styles.thumb} ${styles.giftThumb}`} aria-hidden>
+                      <img
+                        src={PROMO_COLA_GIFT.image}
+                        alt=""
+                        className={styles.thumbImg}
+                      />
+                    </div>
+                    <div className={styles.info}>
+                      <div className={styles.titleRow}>
+                        <h3 className={styles.itemTitle}>{PROMO_COLA_GIFT.name}</h3>
+                        <span className={styles.giftBadge}>Подарок</span>
+                      </div>
+                      <p className={styles.desc}>
+                        Бесплатно при заказе от {PROMO_MIN_PIZZAS} пицц 30 см
+                      </p>
+                      <p className={styles.meta}>0 ₸</p>
+                    </div>
+                  </div>
+                </article>
+              ) : cartCount === 1 ? (
+                <p className={styles.promoHint}>
+                  Добавьте ещё одну пиццу — получите {PROMO_COLA_GIFT.name} бесплатно!
+                </p>
+              ) : null}
               <article className={styles.card}>
                 <div className={styles.total}>
                   <span>Итого</span>

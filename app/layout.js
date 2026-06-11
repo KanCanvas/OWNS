@@ -1,6 +1,7 @@
 import "./globals.css";
 import Header from "../components/Header";
 import CartProvider from "./context/CartProvider";
+import { SearchProvider } from "./context/SearchProvider";
 
 export const metadata = {
   title: "OWNpizza",
@@ -20,8 +21,10 @@ export default function RootLayout({ children }) {
       <body>
         <div className="container app-shell">
           <CartProvider>
-            <Header />
-            <main className="page">{children}</main>
+            <SearchProvider>
+              <Header />
+              <main className="page">{children}</main>
+            </SearchProvider>
           </CartProvider>
         </div>
       </body>
