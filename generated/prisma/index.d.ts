@@ -2244,6 +2244,7 @@ export namespace Prisma {
 
   export type OrderMinAggregateOutputType = {
     id: number | null
+    userId: string | null
     pizzaId: number | null
     pizzaName: string | null
     pizzaSize: string | null
@@ -2251,11 +2252,16 @@ export namespace Prisma {
     count: number | null
     total: number | null
     paymentMethod: $Enums.PaymentMethod | null
+    take: boolean | null
+    complete: boolean | null
+    idCourier: string | null
+    ComplDelevery: boolean | null
     createdAt: Date | null
   }
 
   export type OrderMaxAggregateOutputType = {
     id: number | null
+    userId: string | null
     pizzaId: number | null
     pizzaName: string | null
     pizzaSize: string | null
@@ -2263,11 +2269,16 @@ export namespace Prisma {
     count: number | null
     total: number | null
     paymentMethod: $Enums.PaymentMethod | null
+    take: boolean | null
+    complete: boolean | null
+    idCourier: string | null
+    ComplDelevery: boolean | null
     createdAt: Date | null
   }
 
   export type OrderCountAggregateOutputType = {
     id: number
+    userId: number
     pizzaId: number
     pizzaName: number
     pizzaSize: number
@@ -2275,6 +2286,10 @@ export namespace Prisma {
     count: number
     total: number
     paymentMethod: number
+    take: number
+    complete: number
+    idCourier: number
+    ComplDelevery: number
     createdAt: number
     _all: number
   }
@@ -2298,6 +2313,7 @@ export namespace Prisma {
 
   export type OrderMinAggregateInputType = {
     id?: true
+    userId?: true
     pizzaId?: true
     pizzaName?: true
     pizzaSize?: true
@@ -2305,11 +2321,16 @@ export namespace Prisma {
     count?: true
     total?: true
     paymentMethod?: true
+    take?: true
+    complete?: true
+    idCourier?: true
+    ComplDelevery?: true
     createdAt?: true
   }
 
   export type OrderMaxAggregateInputType = {
     id?: true
+    userId?: true
     pizzaId?: true
     pizzaName?: true
     pizzaSize?: true
@@ -2317,11 +2338,16 @@ export namespace Prisma {
     count?: true
     total?: true
     paymentMethod?: true
+    take?: true
+    complete?: true
+    idCourier?: true
+    ComplDelevery?: true
     createdAt?: true
   }
 
   export type OrderCountAggregateInputType = {
     id?: true
+    userId?: true
     pizzaId?: true
     pizzaName?: true
     pizzaSize?: true
@@ -2329,6 +2355,10 @@ export namespace Prisma {
     count?: true
     total?: true
     paymentMethod?: true
+    take?: true
+    complete?: true
+    idCourier?: true
+    ComplDelevery?: true
     createdAt?: true
     _all?: true
   }
@@ -2421,6 +2451,7 @@ export namespace Prisma {
 
   export type OrderGroupByOutputType = {
     id: number
+    userId: string
     pizzaId: number | null
     pizzaName: string
     pizzaSize: string | null
@@ -2428,6 +2459,10 @@ export namespace Prisma {
     count: number
     total: number
     paymentMethod: $Enums.PaymentMethod
+    take: boolean
+    complete: boolean
+    idCourier: string | null
+    ComplDelevery: boolean
     createdAt: Date
     _count: OrderCountAggregateOutputType | null
     _avg: OrderAvgAggregateOutputType | null
@@ -2452,6 +2487,7 @@ export namespace Prisma {
 
   export type OrderSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
+    userId?: boolean
     pizzaId?: boolean
     pizzaName?: boolean
     pizzaSize?: boolean
@@ -2459,11 +2495,16 @@ export namespace Prisma {
     count?: boolean
     total?: boolean
     paymentMethod?: boolean
+    take?: boolean
+    complete?: boolean
+    idCourier?: boolean
+    ComplDelevery?: boolean
     createdAt?: boolean
   }, ExtArgs["result"]["order"]>
 
   export type OrderSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
+    userId?: boolean
     pizzaId?: boolean
     pizzaName?: boolean
     pizzaSize?: boolean
@@ -2471,11 +2512,16 @@ export namespace Prisma {
     count?: boolean
     total?: boolean
     paymentMethod?: boolean
+    take?: boolean
+    complete?: boolean
+    idCourier?: boolean
+    ComplDelevery?: boolean
     createdAt?: boolean
   }, ExtArgs["result"]["order"]>
 
   export type OrderSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
+    userId?: boolean
     pizzaId?: boolean
     pizzaName?: boolean
     pizzaSize?: boolean
@@ -2483,11 +2529,16 @@ export namespace Prisma {
     count?: boolean
     total?: boolean
     paymentMethod?: boolean
+    take?: boolean
+    complete?: boolean
+    idCourier?: boolean
+    ComplDelevery?: boolean
     createdAt?: boolean
   }, ExtArgs["result"]["order"]>
 
   export type OrderSelectScalar = {
     id?: boolean
+    userId?: boolean
     pizzaId?: boolean
     pizzaName?: boolean
     pizzaSize?: boolean
@@ -2495,16 +2546,21 @@ export namespace Prisma {
     count?: boolean
     total?: boolean
     paymentMethod?: boolean
+    take?: boolean
+    complete?: boolean
+    idCourier?: boolean
+    ComplDelevery?: boolean
     createdAt?: boolean
   }
 
-  export type OrderOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "pizzaId" | "pizzaName" | "pizzaSize" | "pizzaPrice" | "count" | "total" | "paymentMethod" | "createdAt", ExtArgs["result"]["order"]>
+  export type OrderOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "pizzaId" | "pizzaName" | "pizzaSize" | "pizzaPrice" | "count" | "total" | "paymentMethod" | "take" | "complete" | "idCourier" | "ComplDelevery" | "createdAt", ExtArgs["result"]["order"]>
 
   export type $OrderPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "Order"
     objects: {}
     scalars: $Extensions.GetPayloadResult<{
       id: number
+      userId: string
       pizzaId: number | null
       pizzaName: string
       pizzaSize: string | null
@@ -2512,6 +2568,10 @@ export namespace Prisma {
       count: number
       total: number
       paymentMethod: $Enums.PaymentMethod
+      take: boolean
+      complete: boolean
+      idCourier: string | null
+      ComplDelevery: boolean
       createdAt: Date
     }, ExtArgs["result"]["order"]>
     composites: {}
@@ -2937,6 +2997,7 @@ export namespace Prisma {
    */
   interface OrderFieldRefs {
     readonly id: FieldRef<"Order", 'Int'>
+    readonly userId: FieldRef<"Order", 'String'>
     readonly pizzaId: FieldRef<"Order", 'Int'>
     readonly pizzaName: FieldRef<"Order", 'String'>
     readonly pizzaSize: FieldRef<"Order", 'String'>
@@ -2944,6 +3005,10 @@ export namespace Prisma {
     readonly count: FieldRef<"Order", 'Int'>
     readonly total: FieldRef<"Order", 'Int'>
     readonly paymentMethod: FieldRef<"Order", 'PaymentMethod'>
+    readonly take: FieldRef<"Order", 'Boolean'>
+    readonly complete: FieldRef<"Order", 'Boolean'>
+    readonly idCourier: FieldRef<"Order", 'String'>
+    readonly ComplDelevery: FieldRef<"Order", 'Boolean'>
     readonly createdAt: FieldRef<"Order", 'DateTime'>
   }
     
@@ -4345,6 +4410,13 @@ export namespace Prisma {
     name: string | null
     phone: string | null
     smsCode: number | null
+    homeaddress: string | null
+    homeentrance: string | null
+    homeapartment: string | null
+    officeaddress: string | null
+    officename: string | null
+    officefloor: string | null
+    officecabinet: string | null
   }
 
   export type UserMaxAggregateOutputType = {
@@ -4352,6 +4424,13 @@ export namespace Prisma {
     name: string | null
     phone: string | null
     smsCode: number | null
+    homeaddress: string | null
+    homeentrance: string | null
+    homeapartment: string | null
+    officeaddress: string | null
+    officename: string | null
+    officefloor: string | null
+    officecabinet: string | null
   }
 
   export type UserCountAggregateOutputType = {
@@ -4359,6 +4438,13 @@ export namespace Prisma {
     name: number
     phone: number
     smsCode: number
+    homeaddress: number
+    homeentrance: number
+    homeapartment: number
+    officeaddress: number
+    officename: number
+    officefloor: number
+    officecabinet: number
     _all: number
   }
 
@@ -4378,6 +4464,13 @@ export namespace Prisma {
     name?: true
     phone?: true
     smsCode?: true
+    homeaddress?: true
+    homeentrance?: true
+    homeapartment?: true
+    officeaddress?: true
+    officename?: true
+    officefloor?: true
+    officecabinet?: true
   }
 
   export type UserMaxAggregateInputType = {
@@ -4385,6 +4478,13 @@ export namespace Prisma {
     name?: true
     phone?: true
     smsCode?: true
+    homeaddress?: true
+    homeentrance?: true
+    homeapartment?: true
+    officeaddress?: true
+    officename?: true
+    officefloor?: true
+    officecabinet?: true
   }
 
   export type UserCountAggregateInputType = {
@@ -4392,6 +4492,13 @@ export namespace Prisma {
     name?: true
     phone?: true
     smsCode?: true
+    homeaddress?: true
+    homeentrance?: true
+    homeapartment?: true
+    officeaddress?: true
+    officename?: true
+    officefloor?: true
+    officecabinet?: true
     _all?: true
   }
 
@@ -4486,6 +4593,13 @@ export namespace Prisma {
     name: string
     phone: string
     smsCode: number
+    homeaddress: string | null
+    homeentrance: string | null
+    homeapartment: string | null
+    officeaddress: string | null
+    officename: string | null
+    officefloor: string | null
+    officecabinet: string | null
     _count: UserCountAggregateOutputType | null
     _avg: UserAvgAggregateOutputType | null
     _sum: UserSumAggregateOutputType | null
@@ -4512,6 +4626,13 @@ export namespace Prisma {
     name?: boolean
     phone?: boolean
     smsCode?: boolean
+    homeaddress?: boolean
+    homeentrance?: boolean
+    homeapartment?: boolean
+    officeaddress?: boolean
+    officename?: boolean
+    officefloor?: boolean
+    officecabinet?: boolean
   }, ExtArgs["result"]["user"]>
 
   export type UserSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -4519,6 +4640,13 @@ export namespace Prisma {
     name?: boolean
     phone?: boolean
     smsCode?: boolean
+    homeaddress?: boolean
+    homeentrance?: boolean
+    homeapartment?: boolean
+    officeaddress?: boolean
+    officename?: boolean
+    officefloor?: boolean
+    officecabinet?: boolean
   }, ExtArgs["result"]["user"]>
 
   export type UserSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -4526,6 +4654,13 @@ export namespace Prisma {
     name?: boolean
     phone?: boolean
     smsCode?: boolean
+    homeaddress?: boolean
+    homeentrance?: boolean
+    homeapartment?: boolean
+    officeaddress?: boolean
+    officename?: boolean
+    officefloor?: boolean
+    officecabinet?: boolean
   }, ExtArgs["result"]["user"]>
 
   export type UserSelectScalar = {
@@ -4533,9 +4668,16 @@ export namespace Prisma {
     name?: boolean
     phone?: boolean
     smsCode?: boolean
+    homeaddress?: boolean
+    homeentrance?: boolean
+    homeapartment?: boolean
+    officeaddress?: boolean
+    officename?: boolean
+    officefloor?: boolean
+    officecabinet?: boolean
   }
 
-  export type UserOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "phone" | "smsCode", ExtArgs["result"]["user"]>
+  export type UserOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "phone" | "smsCode" | "homeaddress" | "homeentrance" | "homeapartment" | "officeaddress" | "officename" | "officefloor" | "officecabinet", ExtArgs["result"]["user"]>
 
   export type $UserPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "User"
@@ -4545,6 +4687,13 @@ export namespace Prisma {
       name: string
       phone: string
       smsCode: number
+      homeaddress: string | null
+      homeentrance: string | null
+      homeapartment: string | null
+      officeaddress: string | null
+      officename: string | null
+      officefloor: string | null
+      officecabinet: string | null
     }, ExtArgs["result"]["user"]>
     composites: {}
   }
@@ -4972,6 +5121,13 @@ export namespace Prisma {
     readonly name: FieldRef<"User", 'String'>
     readonly phone: FieldRef<"User", 'String'>
     readonly smsCode: FieldRef<"User", 'Int'>
+    readonly homeaddress: FieldRef<"User", 'String'>
+    readonly homeentrance: FieldRef<"User", 'String'>
+    readonly homeapartment: FieldRef<"User", 'String'>
+    readonly officeaddress: FieldRef<"User", 'String'>
+    readonly officename: FieldRef<"User", 'String'>
+    readonly officefloor: FieldRef<"User", 'String'>
+    readonly officecabinet: FieldRef<"User", 'String'>
   }
     
 
@@ -5367,6 +5523,7 @@ export namespace Prisma {
 
   export const OrderScalarFieldEnum: {
     id: 'id',
+    userId: 'userId',
     pizzaId: 'pizzaId',
     pizzaName: 'pizzaName',
     pizzaSize: 'pizzaSize',
@@ -5374,6 +5531,10 @@ export namespace Prisma {
     count: 'count',
     total: 'total',
     paymentMethod: 'paymentMethod',
+    take: 'take',
+    complete: 'complete',
+    idCourier: 'idCourier',
+    ComplDelevery: 'ComplDelevery',
     createdAt: 'createdAt'
   };
 
@@ -5393,7 +5554,14 @@ export namespace Prisma {
     id: 'id',
     name: 'name',
     phone: 'phone',
-    smsCode: 'smsCode'
+    smsCode: 'smsCode',
+    homeaddress: 'homeaddress',
+    homeentrance: 'homeentrance',
+    homeapartment: 'homeapartment',
+    officeaddress: 'officeaddress',
+    officename: 'officename',
+    officefloor: 'officefloor',
+    officecabinet: 'officecabinet'
   };
 
   export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
@@ -5496,6 +5664,13 @@ export namespace Prisma {
    */
   export type ListEnumPaymentMethodFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PaymentMethod[]'>
     
+
+
+  /**
+   * Reference to a field of type 'Boolean'
+   */
+  export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
+    
   /**
    * Deep Input Types
    */
@@ -5571,6 +5746,7 @@ export namespace Prisma {
     OR?: OrderWhereInput[]
     NOT?: OrderWhereInput | OrderWhereInput[]
     id?: IntFilter<"Order"> | number
+    userId?: StringFilter<"Order"> | string
     pizzaId?: IntNullableFilter<"Order"> | number | null
     pizzaName?: StringFilter<"Order"> | string
     pizzaSize?: StringNullableFilter<"Order"> | string | null
@@ -5578,11 +5754,16 @@ export namespace Prisma {
     count?: IntFilter<"Order"> | number
     total?: IntFilter<"Order"> | number
     paymentMethod?: EnumPaymentMethodFilter<"Order"> | $Enums.PaymentMethod
+    take?: BoolFilter<"Order"> | boolean
+    complete?: BoolFilter<"Order"> | boolean
+    idCourier?: StringNullableFilter<"Order"> | string | null
+    ComplDelevery?: BoolFilter<"Order"> | boolean
     createdAt?: DateTimeFilter<"Order"> | Date | string
   }
 
   export type OrderOrderByWithRelationInput = {
     id?: SortOrder
+    userId?: SortOrder
     pizzaId?: SortOrderInput | SortOrder
     pizzaName?: SortOrder
     pizzaSize?: SortOrderInput | SortOrder
@@ -5590,6 +5771,10 @@ export namespace Prisma {
     count?: SortOrder
     total?: SortOrder
     paymentMethod?: SortOrder
+    take?: SortOrder
+    complete?: SortOrder
+    idCourier?: SortOrderInput | SortOrder
+    ComplDelevery?: SortOrder
     createdAt?: SortOrder
   }
 
@@ -5598,6 +5783,7 @@ export namespace Prisma {
     AND?: OrderWhereInput | OrderWhereInput[]
     OR?: OrderWhereInput[]
     NOT?: OrderWhereInput | OrderWhereInput[]
+    userId?: StringFilter<"Order"> | string
     pizzaId?: IntNullableFilter<"Order"> | number | null
     pizzaName?: StringFilter<"Order"> | string
     pizzaSize?: StringNullableFilter<"Order"> | string | null
@@ -5605,11 +5791,16 @@ export namespace Prisma {
     count?: IntFilter<"Order"> | number
     total?: IntFilter<"Order"> | number
     paymentMethod?: EnumPaymentMethodFilter<"Order"> | $Enums.PaymentMethod
+    take?: BoolFilter<"Order"> | boolean
+    complete?: BoolFilter<"Order"> | boolean
+    idCourier?: StringNullableFilter<"Order"> | string | null
+    ComplDelevery?: BoolFilter<"Order"> | boolean
     createdAt?: DateTimeFilter<"Order"> | Date | string
   }, "id">
 
   export type OrderOrderByWithAggregationInput = {
     id?: SortOrder
+    userId?: SortOrder
     pizzaId?: SortOrderInput | SortOrder
     pizzaName?: SortOrder
     pizzaSize?: SortOrderInput | SortOrder
@@ -5617,6 +5808,10 @@ export namespace Prisma {
     count?: SortOrder
     total?: SortOrder
     paymentMethod?: SortOrder
+    take?: SortOrder
+    complete?: SortOrder
+    idCourier?: SortOrderInput | SortOrder
+    ComplDelevery?: SortOrder
     createdAt?: SortOrder
     _count?: OrderCountOrderByAggregateInput
     _avg?: OrderAvgOrderByAggregateInput
@@ -5630,6 +5825,7 @@ export namespace Prisma {
     OR?: OrderScalarWhereWithAggregatesInput[]
     NOT?: OrderScalarWhereWithAggregatesInput | OrderScalarWhereWithAggregatesInput[]
     id?: IntWithAggregatesFilter<"Order"> | number
+    userId?: StringWithAggregatesFilter<"Order"> | string
     pizzaId?: IntNullableWithAggregatesFilter<"Order"> | number | null
     pizzaName?: StringWithAggregatesFilter<"Order"> | string
     pizzaSize?: StringNullableWithAggregatesFilter<"Order"> | string | null
@@ -5637,6 +5833,10 @@ export namespace Prisma {
     count?: IntWithAggregatesFilter<"Order"> | number
     total?: IntWithAggregatesFilter<"Order"> | number
     paymentMethod?: EnumPaymentMethodWithAggregatesFilter<"Order"> | $Enums.PaymentMethod
+    take?: BoolWithAggregatesFilter<"Order"> | boolean
+    complete?: BoolWithAggregatesFilter<"Order"> | boolean
+    idCourier?: StringNullableWithAggregatesFilter<"Order"> | string | null
+    ComplDelevery?: BoolWithAggregatesFilter<"Order"> | boolean
     createdAt?: DateTimeWithAggregatesFilter<"Order"> | Date | string
   }
 
@@ -5692,6 +5892,13 @@ export namespace Prisma {
     name?: StringFilter<"User"> | string
     phone?: StringFilter<"User"> | string
     smsCode?: IntFilter<"User"> | number
+    homeaddress?: StringNullableFilter<"User"> | string | null
+    homeentrance?: StringNullableFilter<"User"> | string | null
+    homeapartment?: StringNullableFilter<"User"> | string | null
+    officeaddress?: StringNullableFilter<"User"> | string | null
+    officename?: StringNullableFilter<"User"> | string | null
+    officefloor?: StringNullableFilter<"User"> | string | null
+    officecabinet?: StringNullableFilter<"User"> | string | null
   }
 
   export type UserOrderByWithRelationInput = {
@@ -5699,6 +5906,13 @@ export namespace Prisma {
     name?: SortOrder
     phone?: SortOrder
     smsCode?: SortOrder
+    homeaddress?: SortOrderInput | SortOrder
+    homeentrance?: SortOrderInput | SortOrder
+    homeapartment?: SortOrderInput | SortOrder
+    officeaddress?: SortOrderInput | SortOrder
+    officename?: SortOrderInput | SortOrder
+    officefloor?: SortOrderInput | SortOrder
+    officecabinet?: SortOrderInput | SortOrder
   }
 
   export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -5709,6 +5923,13 @@ export namespace Prisma {
     name?: StringFilter<"User"> | string
     phone?: StringFilter<"User"> | string
     smsCode?: IntFilter<"User"> | number
+    homeaddress?: StringNullableFilter<"User"> | string | null
+    homeentrance?: StringNullableFilter<"User"> | string | null
+    homeapartment?: StringNullableFilter<"User"> | string | null
+    officeaddress?: StringNullableFilter<"User"> | string | null
+    officename?: StringNullableFilter<"User"> | string | null
+    officefloor?: StringNullableFilter<"User"> | string | null
+    officecabinet?: StringNullableFilter<"User"> | string | null
   }, "id">
 
   export type UserOrderByWithAggregationInput = {
@@ -5716,6 +5937,13 @@ export namespace Prisma {
     name?: SortOrder
     phone?: SortOrder
     smsCode?: SortOrder
+    homeaddress?: SortOrderInput | SortOrder
+    homeentrance?: SortOrderInput | SortOrder
+    homeapartment?: SortOrderInput | SortOrder
+    officeaddress?: SortOrderInput | SortOrder
+    officename?: SortOrderInput | SortOrder
+    officefloor?: SortOrderInput | SortOrder
+    officecabinet?: SortOrderInput | SortOrder
     _count?: UserCountOrderByAggregateInput
     _avg?: UserAvgOrderByAggregateInput
     _max?: UserMaxOrderByAggregateInput
@@ -5731,6 +5959,13 @@ export namespace Prisma {
     name?: StringWithAggregatesFilter<"User"> | string
     phone?: StringWithAggregatesFilter<"User"> | string
     smsCode?: IntWithAggregatesFilter<"User"> | number
+    homeaddress?: StringNullableWithAggregatesFilter<"User"> | string | null
+    homeentrance?: StringNullableWithAggregatesFilter<"User"> | string | null
+    homeapartment?: StringNullableWithAggregatesFilter<"User"> | string | null
+    officeaddress?: StringNullableWithAggregatesFilter<"User"> | string | null
+    officename?: StringNullableWithAggregatesFilter<"User"> | string | null
+    officefloor?: StringNullableWithAggregatesFilter<"User"> | string | null
+    officecabinet?: StringNullableWithAggregatesFilter<"User"> | string | null
   }
 
   export type PizzaCreateInput = {
@@ -5801,6 +6036,7 @@ export namespace Prisma {
   }
 
   export type OrderCreateInput = {
+    userId: string
     pizzaId?: number | null
     pizzaName: string
     pizzaSize?: string | null
@@ -5808,11 +6044,16 @@ export namespace Prisma {
     count: number
     total: number
     paymentMethod: $Enums.PaymentMethod
+    take?: boolean
+    complete?: boolean
+    idCourier?: string | null
+    ComplDelevery?: boolean
     createdAt?: Date | string
   }
 
   export type OrderUncheckedCreateInput = {
     id?: number
+    userId: string
     pizzaId?: number | null
     pizzaName: string
     pizzaSize?: string | null
@@ -5820,10 +6061,15 @@ export namespace Prisma {
     count: number
     total: number
     paymentMethod: $Enums.PaymentMethod
+    take?: boolean
+    complete?: boolean
+    idCourier?: string | null
+    ComplDelevery?: boolean
     createdAt?: Date | string
   }
 
   export type OrderUpdateInput = {
+    userId?: StringFieldUpdateOperationsInput | string
     pizzaId?: NullableIntFieldUpdateOperationsInput | number | null
     pizzaName?: StringFieldUpdateOperationsInput | string
     pizzaSize?: NullableStringFieldUpdateOperationsInput | string | null
@@ -5831,11 +6077,16 @@ export namespace Prisma {
     count?: IntFieldUpdateOperationsInput | number
     total?: IntFieldUpdateOperationsInput | number
     paymentMethod?: EnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod
+    take?: BoolFieldUpdateOperationsInput | boolean
+    complete?: BoolFieldUpdateOperationsInput | boolean
+    idCourier?: NullableStringFieldUpdateOperationsInput | string | null
+    ComplDelevery?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type OrderUncheckedUpdateInput = {
     id?: IntFieldUpdateOperationsInput | number
+    userId?: StringFieldUpdateOperationsInput | string
     pizzaId?: NullableIntFieldUpdateOperationsInput | number | null
     pizzaName?: StringFieldUpdateOperationsInput | string
     pizzaSize?: NullableStringFieldUpdateOperationsInput | string | null
@@ -5843,11 +6094,16 @@ export namespace Prisma {
     count?: IntFieldUpdateOperationsInput | number
     total?: IntFieldUpdateOperationsInput | number
     paymentMethod?: EnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod
+    take?: BoolFieldUpdateOperationsInput | boolean
+    complete?: BoolFieldUpdateOperationsInput | boolean
+    idCourier?: NullableStringFieldUpdateOperationsInput | string | null
+    ComplDelevery?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type OrderCreateManyInput = {
     id?: number
+    userId: string
     pizzaId?: number | null
     pizzaName: string
     pizzaSize?: string | null
@@ -5855,10 +6111,15 @@ export namespace Prisma {
     count: number
     total: number
     paymentMethod: $Enums.PaymentMethod
+    take?: boolean
+    complete?: boolean
+    idCourier?: string | null
+    ComplDelevery?: boolean
     createdAt?: Date | string
   }
 
   export type OrderUpdateManyMutationInput = {
+    userId?: StringFieldUpdateOperationsInput | string
     pizzaId?: NullableIntFieldUpdateOperationsInput | number | null
     pizzaName?: StringFieldUpdateOperationsInput | string
     pizzaSize?: NullableStringFieldUpdateOperationsInput | string | null
@@ -5866,11 +6127,16 @@ export namespace Prisma {
     count?: IntFieldUpdateOperationsInput | number
     total?: IntFieldUpdateOperationsInput | number
     paymentMethod?: EnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod
+    take?: BoolFieldUpdateOperationsInput | boolean
+    complete?: BoolFieldUpdateOperationsInput | boolean
+    idCourier?: NullableStringFieldUpdateOperationsInput | string | null
+    ComplDelevery?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type OrderUncheckedUpdateManyInput = {
     id?: IntFieldUpdateOperationsInput | number
+    userId?: StringFieldUpdateOperationsInput | string
     pizzaId?: NullableIntFieldUpdateOperationsInput | number | null
     pizzaName?: StringFieldUpdateOperationsInput | string
     pizzaSize?: NullableStringFieldUpdateOperationsInput | string | null
@@ -5878,6 +6144,10 @@ export namespace Prisma {
     count?: IntFieldUpdateOperationsInput | number
     total?: IntFieldUpdateOperationsInput | number
     paymentMethod?: EnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod
+    take?: BoolFieldUpdateOperationsInput | boolean
+    complete?: BoolFieldUpdateOperationsInput | boolean
+    idCourier?: NullableStringFieldUpdateOperationsInput | string | null
+    ComplDelevery?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -5924,6 +6194,13 @@ export namespace Prisma {
     name: string
     phone: string
     smsCode: number
+    homeaddress?: string | null
+    homeentrance?: string | null
+    homeapartment?: string | null
+    officeaddress?: string | null
+    officename?: string | null
+    officefloor?: string | null
+    officecabinet?: string | null
   }
 
   export type UserUncheckedCreateInput = {
@@ -5931,12 +6208,26 @@ export namespace Prisma {
     name: string
     phone: string
     smsCode: number
+    homeaddress?: string | null
+    homeentrance?: string | null
+    homeapartment?: string | null
+    officeaddress?: string | null
+    officename?: string | null
+    officefloor?: string | null
+    officecabinet?: string | null
   }
 
   export type UserUpdateInput = {
     name?: StringFieldUpdateOperationsInput | string
     phone?: StringFieldUpdateOperationsInput | string
     smsCode?: IntFieldUpdateOperationsInput | number
+    homeaddress?: NullableStringFieldUpdateOperationsInput | string | null
+    homeentrance?: NullableStringFieldUpdateOperationsInput | string | null
+    homeapartment?: NullableStringFieldUpdateOperationsInput | string | null
+    officeaddress?: NullableStringFieldUpdateOperationsInput | string | null
+    officename?: NullableStringFieldUpdateOperationsInput | string | null
+    officefloor?: NullableStringFieldUpdateOperationsInput | string | null
+    officecabinet?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type UserUncheckedUpdateInput = {
@@ -5944,6 +6235,13 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     phone?: StringFieldUpdateOperationsInput | string
     smsCode?: IntFieldUpdateOperationsInput | number
+    homeaddress?: NullableStringFieldUpdateOperationsInput | string | null
+    homeentrance?: NullableStringFieldUpdateOperationsInput | string | null
+    homeapartment?: NullableStringFieldUpdateOperationsInput | string | null
+    officeaddress?: NullableStringFieldUpdateOperationsInput | string | null
+    officename?: NullableStringFieldUpdateOperationsInput | string | null
+    officefloor?: NullableStringFieldUpdateOperationsInput | string | null
+    officecabinet?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type UserCreateManyInput = {
@@ -5951,12 +6249,26 @@ export namespace Prisma {
     name: string
     phone: string
     smsCode: number
+    homeaddress?: string | null
+    homeentrance?: string | null
+    homeapartment?: string | null
+    officeaddress?: string | null
+    officename?: string | null
+    officefloor?: string | null
+    officecabinet?: string | null
   }
 
   export type UserUpdateManyMutationInput = {
     name?: StringFieldUpdateOperationsInput | string
     phone?: StringFieldUpdateOperationsInput | string
     smsCode?: IntFieldUpdateOperationsInput | number
+    homeaddress?: NullableStringFieldUpdateOperationsInput | string | null
+    homeentrance?: NullableStringFieldUpdateOperationsInput | string | null
+    homeapartment?: NullableStringFieldUpdateOperationsInput | string | null
+    officeaddress?: NullableStringFieldUpdateOperationsInput | string | null
+    officename?: NullableStringFieldUpdateOperationsInput | string | null
+    officefloor?: NullableStringFieldUpdateOperationsInput | string | null
+    officecabinet?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type UserUncheckedUpdateManyInput = {
@@ -5964,6 +6276,13 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     phone?: StringFieldUpdateOperationsInput | string
     smsCode?: IntFieldUpdateOperationsInput | number
+    homeaddress?: NullableStringFieldUpdateOperationsInput | string | null
+    homeentrance?: NullableStringFieldUpdateOperationsInput | string | null
+    homeapartment?: NullableStringFieldUpdateOperationsInput | string | null
+    officeaddress?: NullableStringFieldUpdateOperationsInput | string | null
+    officename?: NullableStringFieldUpdateOperationsInput | string | null
+    officefloor?: NullableStringFieldUpdateOperationsInput | string | null
+    officecabinet?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type IntFilter<$PrismaModel = never> = {
@@ -6158,6 +6477,11 @@ export namespace Prisma {
     not?: NestedEnumPaymentMethodFilter<$PrismaModel> | $Enums.PaymentMethod
   }
 
+  export type BoolFilter<$PrismaModel = never> = {
+    equals?: boolean | BooleanFieldRefInput<$PrismaModel>
+    not?: NestedBoolFilter<$PrismaModel> | boolean
+  }
+
   export type SortOrderInput = {
     sort: SortOrder
     nulls?: NullsOrder
@@ -6165,6 +6489,7 @@ export namespace Prisma {
 
   export type OrderCountOrderByAggregateInput = {
     id?: SortOrder
+    userId?: SortOrder
     pizzaId?: SortOrder
     pizzaName?: SortOrder
     pizzaSize?: SortOrder
@@ -6172,6 +6497,10 @@ export namespace Prisma {
     count?: SortOrder
     total?: SortOrder
     paymentMethod?: SortOrder
+    take?: SortOrder
+    complete?: SortOrder
+    idCourier?: SortOrder
+    ComplDelevery?: SortOrder
     createdAt?: SortOrder
   }
 
@@ -6185,6 +6514,7 @@ export namespace Prisma {
 
   export type OrderMaxOrderByAggregateInput = {
     id?: SortOrder
+    userId?: SortOrder
     pizzaId?: SortOrder
     pizzaName?: SortOrder
     pizzaSize?: SortOrder
@@ -6192,11 +6522,16 @@ export namespace Prisma {
     count?: SortOrder
     total?: SortOrder
     paymentMethod?: SortOrder
+    take?: SortOrder
+    complete?: SortOrder
+    idCourier?: SortOrder
+    ComplDelevery?: SortOrder
     createdAt?: SortOrder
   }
 
   export type OrderMinOrderByAggregateInput = {
     id?: SortOrder
+    userId?: SortOrder
     pizzaId?: SortOrder
     pizzaName?: SortOrder
     pizzaSize?: SortOrder
@@ -6204,6 +6539,10 @@ export namespace Prisma {
     count?: SortOrder
     total?: SortOrder
     paymentMethod?: SortOrder
+    take?: SortOrder
+    complete?: SortOrder
+    idCourier?: SortOrder
+    ComplDelevery?: SortOrder
     createdAt?: SortOrder
   }
 
@@ -6259,6 +6598,14 @@ export namespace Prisma {
     _max?: NestedEnumPaymentMethodFilter<$PrismaModel>
   }
 
+  export type BoolWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: boolean | BooleanFieldRefInput<$PrismaModel>
+    not?: NestedBoolWithAggregatesFilter<$PrismaModel> | boolean
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedBoolFilter<$PrismaModel>
+    _max?: NestedBoolFilter<$PrismaModel>
+  }
+
   export type TgcodeCountOrderByAggregateInput = {
     id?: SortOrder
     code?: SortOrder
@@ -6292,6 +6639,13 @@ export namespace Prisma {
     name?: SortOrder
     phone?: SortOrder
     smsCode?: SortOrder
+    homeaddress?: SortOrder
+    homeentrance?: SortOrder
+    homeapartment?: SortOrder
+    officeaddress?: SortOrder
+    officename?: SortOrder
+    officefloor?: SortOrder
+    officecabinet?: SortOrder
   }
 
   export type UserAvgOrderByAggregateInput = {
@@ -6304,6 +6658,13 @@ export namespace Prisma {
     name?: SortOrder
     phone?: SortOrder
     smsCode?: SortOrder
+    homeaddress?: SortOrder
+    homeentrance?: SortOrder
+    homeapartment?: SortOrder
+    officeaddress?: SortOrder
+    officename?: SortOrder
+    officefloor?: SortOrder
+    officecabinet?: SortOrder
   }
 
   export type UserMinOrderByAggregateInput = {
@@ -6311,6 +6672,13 @@ export namespace Prisma {
     name?: SortOrder
     phone?: SortOrder
     smsCode?: SortOrder
+    homeaddress?: SortOrder
+    homeentrance?: SortOrder
+    homeapartment?: SortOrder
+    officeaddress?: SortOrder
+    officename?: SortOrder
+    officefloor?: SortOrder
+    officecabinet?: SortOrder
   }
 
   export type UserSumOrderByAggregateInput = {
@@ -6356,6 +6724,10 @@ export namespace Prisma {
 
   export type EnumPaymentMethodFieldUpdateOperationsInput = {
     set?: $Enums.PaymentMethod
+  }
+
+  export type BoolFieldUpdateOperationsInput = {
+    set?: boolean
   }
 
   export type NestedIntFilter<$PrismaModel = never> = {
@@ -6500,6 +6872,11 @@ export namespace Prisma {
     not?: NestedEnumPaymentMethodFilter<$PrismaModel> | $Enums.PaymentMethod
   }
 
+  export type NestedBoolFilter<$PrismaModel = never> = {
+    equals?: boolean | BooleanFieldRefInput<$PrismaModel>
+    not?: NestedBoolFilter<$PrismaModel> | boolean
+  }
+
   export type NestedIntNullableWithAggregatesFilter<$PrismaModel = never> = {
     equals?: number | IntFieldRefInput<$PrismaModel> | null
     in?: number[] | ListIntFieldRefInput<$PrismaModel> | null
@@ -6552,6 +6929,14 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedEnumPaymentMethodFilter<$PrismaModel>
     _max?: NestedEnumPaymentMethodFilter<$PrismaModel>
+  }
+
+  export type NestedBoolWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: boolean | BooleanFieldRefInput<$PrismaModel>
+    not?: NestedBoolWithAggregatesFilter<$PrismaModel> | boolean
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedBoolFilter<$PrismaModel>
+    _max?: NestedBoolFilter<$PrismaModel>
   }
 
 

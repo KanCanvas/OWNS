@@ -1,0 +1,6 @@
+const empty = Object.keys(cartItems).length === 0;
+    setWithExpiry(
+      "cartItems",
+      empty === true ? getWithExpiry("cartItems") : cartItems,
+      60 * 60 * 1000
+    );

@@ -1,0 +1,163 @@
+.page {
+  padding: 34px;
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.titleWrap h1 {
+  margin: 0 0 8px;
+}
+
+.titleWrap p {
+  margin: 0;
+  color: #8a786f;
+}
+
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 42px;
+  padding: 0 18px;
+  border-radius: 999px;
+  background: #ffe5da;
+  color: #ad3f1a;
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.stateCard {
+  max-width: 720px;
+  border: 1px solid #ffdccc;
+  border-radius: 18px;
+  background: linear-gradient(180deg, #fff8f3 0%, #fff 100%);
+  padding: 26px;
+  box-shadow: 0 10px 24px rgba(201, 113, 59, 0.12);
+}
+
+.error {
+  color: #b80000;
+  margin: 0;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 18px;
+}
+
+.card {
+  border: 1px solid #ffe1d3;
+  border-radius: 18px;
+  background: linear-gradient(180deg, #fffaf6 0%, #fff 100%);
+  padding: 18px;
+  box-shadow: 0 10px 24px rgba(201, 113, 59, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.cardTop {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.orderId {
+  display: inline-flex;
+  align-items: center;
+  height: 28px;
+  border-radius: 999px;
+  background: #fff0e7;
+  color: #ff7a36;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0 12px;
+}
+
+.date {
+  color: #8a786f;
+  font-size: 0.82rem;
+  text-align: right;
+}
+
+.customer {
+  display: grid;
+  gap: 8px;
+}
+
+.customerRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 0.92rem;
+}
+
+.customerRow span {
+  color: #8a786f;
+}
+
+.items {
+  display: grid;
+  gap: 8px;
+}
+
+.item {
+  border: 1px solid #ffe9de;
+  border-radius: 12px;
+  background: #fff;
+  padding: 12px;
+}
+
+.itemName {
+  margin: 0 0 4px;
+  font-weight: 700;
+}
+
+.itemMeta {
+  margin: 0;
+  color: #8a786f;
+  font-size: 0.86rem;
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-top: 4px;
+  border-top: 1px solid #ffe9de;
+}
+
+.total {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #f25c2a;
+}
+
+.payment {
+  display: inline-flex;
+  align-items: center;
+  height: 30px;
+  border-radius: 999px;
+  background: #fff0e7;
+  color: #ad3f1a;
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 0 12px;
+}
+
+@media (max-width: 740px) {
+  .page {
+    padding: 20px 16px 24px;
+  }
+}

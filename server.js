@@ -7,6 +7,7 @@ require("dotenv").config({ path: path.join(__dirname, ".env") });
 const express = require("express");
 const next = require("next");
 const prisma = require("./lib/prisma");
+const { compare } = require("bcryptjs");
 
 const port = Number(process.env.PORT) || 3000;
 const dev = process.env.NODE_ENV !== "production";
@@ -83,10 +84,56 @@ app
 
     server.post("/order", async (req, res) => {
       try {
-        const { pizza, count, total, paymentMethod } = req.body || {};
+        const { pizza, paymentMethod, address, entrance, apartment } = req.body || {};
+      
+        const authHeader = req.headers.authorization;
+        if (!authHeader) {
+          return res.status(401).json({ ok: false, error: "Не авторизован." });
+        }
 
-        const numericCount = Number(count);
-        if (!pizza || !Number.isFinite(numericCount) || numericCount <= 0) {
+        const token = authHeader.startsWith("Bearer ")
+          ? authHeader.slice(7)
+          : authHeader;
+
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const userId = decoded.userId;
+        if (!userId) {
+          return res.status(401).json({ ok: false, error: "Не авторизован." });
+        }
+
+        const user = await prisma.user.findUnique({
+          where: {
+            id: userId, // ВАЖНО: именно id, не userId
+          },
+          select: {
+            homeaddress: true,
+            homeentrance: true,
+            homeapartment: true,
+          },
+        });
+
+        if(address !== user.homeaddress || entrance !== user.homeentrance || apartment !== user.homeapartment){
+          if(address !== "" && entrance !== "" && apartment !== ""){
+            await prisma.user.update({
+              where: {
+                id: userId
+              },
+              data: {
+                homeaddress: address,
+                homeentrance: entrance,
+                homeapartment: apartment,
+              }
+            })
+          }
+          console.log("Есть изменения в адресе доставки!");
+
+        }
+
+        if(address === "" && entrance === "" && apartment === ""){
+          return res.status(400).json({message: "Не указан адрес доставки"})
+        }
+
+        if (!Array.isArray(pizza) || pizza.length === 0) {
           return res
             .status(400)
             .json({ ok: false, error: "Корзина пуста или данные некорректны." });
@@ -101,34 +148,49 @@ app
           });
         }
 
-        const pizzaPrice =
-          typeof pizza.price === "number" && Number.isFinite(pizza.price)
-            ? Math.round(pizza.price)
-            : null;
+        const orders = [];
+        for (let i = 0; i < pizza.length; i++) {
+          const item = pizza[i];
+          if (!item) continue;
 
-        const computedTotal =
-          typeof total === "number" && Number.isFinite(total)
-            ? Math.round(total)
-            : pizzaPrice !== null
-              ? pizzaPrice * numericCount
-              : 0;
+          const itemCount = Number(item.count);
+          if (!Number.isFinite(itemCount) || itemCount <= 0) continue;
 
-        const order = await prisma.order.create({
-          data: {
-            pizzaId:
-              typeof pizza.id === "number" && Number.isFinite(pizza.id)
-                ? pizza.id
-                : null,
-            pizzaName: String(pizza.name || "Без названия"),
-            pizzaSize: pizza.size ? String(pizza.size) : null,
-            pizzaPrice,
-            count: numericCount,
-            total: computedTotal,
-            paymentMethod: normalizedMethod
-          }
-        });
+          const pizzaPrice =
+            typeof item.price === "number" && Number.isFinite(item.price)
+              ? Math.round(item.price)
+              : null;
 
-        return res.status(201).json({ ok: true, order });
+          const itemTotal =
+            pizzaPrice !== null ? pizzaPrice * itemCount : 0;
+
+          const order = await prisma.order.create({
+            data: {
+              pizzaId:
+                typeof item.id === "number" && Number.isFinite(item.id)
+                  ? item.id
+                  : null,
+              userId: String(userId),
+              pizzaName: String(item.name || "Без названия"),
+              pizzaSize: item.size ? String(item.size) : null,
+              pizzaPrice,
+              count: itemCount,
+              total: itemTotal,
+              paymentMethod: normalizedMethod
+            }
+          });
+          orders.push(order);
+        }
+
+        if (orders.length === 0) {
+          return res.status(400).json({
+            ok: false,
+            error: "Корзина пуста или данные некорректны."
+          });
+        }
+          
+
+        return res.status(201).json({ ok: true, orders });
       } catch (error) {
         console.error("Failed to save order:", error);
         const msg = String(error?.message || "");
@@ -148,6 +210,49 @@ app
         });
       }
     });
+
+    server.get("/api/user/address", async (req, res) => {
+      try {
+        const authHeader = req.headers.authorization;
+        if (!authHeader) {
+          return res.status(401).json({ ok: false, error: "Не авторизован." });
+        }
+
+        const token = authHeader.startsWith("Bearer ")
+          ? authHeader.slice(7)
+          : authHeader;
+
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const userId = decoded.userId;
+        if (!userId) {
+          return res.status(401).json({ ok: false, error: "Не авторизован." });
+        }
+
+        const user = await prisma.user.findUnique({
+          where: {
+            id: userId
+          },
+          select: {
+            homeaddress: true,
+            homeentrance: true,
+            homeapartment: true,
+          }
+        })
+
+        return res.json({
+          ok: true,
+          address: user,
+        });
+      } catch(error) {
+        console.log(error);
+
+        return res.status(500).json({
+            ok: false,
+            error: "Ошибка сервера",
+        });
+      }
+    })
+
     server.post("/api/auth/register", async (req, res) => {
       try {
         const {name, phone, smsCode } = req.body || {};
@@ -202,8 +307,10 @@ app
             smsCode: numericSmsCode
           }
         });
+
+        const token = jwt.sign({ userId: users.id }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES_IN });
         
-        return res.status(201).json({ ok: true, user: users });
+        return res.status(201).json({ ok: true, token, user: { id: users.id, name: users.name, phone: users.phone } });
       } catch (error) {
         console.error("Failed to register user:", error);
         return res.status(500).json({
@@ -256,7 +363,16 @@ app
 
         const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES_IN });
 
-        return res.status(200).json({ ok: true, token, user: { id: user.id, name: user.name, phone: user.phone } });
+        // Если пользователь с номером телефона 87009581010 является Администратором
+        if(normalizedPhone === "87009581010") {
+          return res.status(200).json({ ok: true, user: { id: user.id, name: user.name, phone: user.phone, isAdmin: true } });
+        }    
+        
+        if(normalizedPhone === "87009582985") {
+          return res.status(200).json({ok: true, user: {id: user.id, name: user.name, phone: user.phone, isСourier: true}})
+        }
+
+        return res.status(200).json({ ok: true, token, user: { id: user.id, name: user.name, phone: user.phone, isAdmin: false, isCourier: false } });
       } catch (error) {
         console.error("Failed to login:", error);
         return res.status(500).json({
@@ -265,6 +381,526 @@ app
         });
       }
     });
+
+    server.post("/api/auth/adminlogin", async (req, res) => {
+      try {
+        const { password, phone } = req.body || {};
+        const normalizedPassword = String(password || "").trim();
+        const normalizedPhone = String(phone || "").trim();
+
+        if (!normalizedPassword) {
+          return res.status(400).json({
+            ok: false,
+            error: "Не все данные заполнены."
+          });
+        }
+        if (normalizedPassword !== process.env.ADMIN_PASSWORD) {
+          return res.status(400).json({
+            ok: false,
+            error: "Неверный пароль."
+          });
+        }
+
+        const user = await prisma.user.findFirst({
+          where: {
+            phone: normalizedPhone
+          }
+        });
+        if (!user) {
+          return res.status(400).json({
+            ok: false,
+            error: "Пользователь не найден."
+          });
+        }
+
+        const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES_IN });
+
+        if(normalizedPassword === process.env.ADMIN_PASSWORD) {
+          return res.status(200).json({
+            ok: true,
+            token,
+            user: { id: user.id, name: user.name, phone: user.phone, isAdmin: true },
+            message: "Вход в админ-панель выполнен успешно."
+          });
+        }
+      }catch (error){
+        console.error("Failed to login:", error);
+        return res.status(500).json({
+          ok: false,
+          error: "Не удалось выполнить вход."
+        });
+      }
+    });
+
+    server.post("/api/auth/courierlogin", async (req, res) => {
+      try{
+        const { password, phone } = req.body || {};
+        const normalizedPassword = String(password || "").trim();
+        const normalizedPhone = String(phone || "").trim();
+
+        if (!normalizedPassword) {
+          return res.status(400).json({
+            ok: false,
+            error: "Не все данные заполнены."
+          });
+        }
+        if (normalizedPassword !== process.env.COURIER_PASSWORD) {
+          return res.status(400).json({
+            ok: false,
+            error: "Неверный пароль."
+          });
+        }
+
+        const user = await prisma.user.findFirst({
+          where: {
+            phone: normalizedPhone
+          }
+        });
+        if (!user) {
+          return res.status(400).json({
+            ok: false,
+            error: "Пользователь не найден."
+          });
+        }
+
+        const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES_IN });
+
+        if(normalizedPassword === process.env.COURIER_PASSWORD) {
+          return res.status(200).json({
+            ok: true,
+            token,
+            user: { id: user.id, name: user.name, phone: user.phone, isCourier: true },
+            message: "Вход в курьер-панель выполнен успешно."
+          });
+        }
+      } catch (error) {
+        console.log(error);
+      }
+    })
+
+    const isAdminPhone = (phone) => {
+      const adminPhone = String(
+        process.env.ADMIN_PHONE || process.env.NEXT_PUBLIC_ADMIN_PHONE || ""
+      ).replace(/\D/g, "");
+      return String(phone || "").replace(/\D/g, "") === adminPhone && adminPhone.length > 0;
+    };
+
+    server.get("/api/admin/orders", async (req, res) => {
+      try {
+        const authHeader = req.headers.authorization;
+        if (!authHeader) {
+          return res.status(401).json({ ok: false, error: "Не авторизован." });
+        }
+
+        const token = authHeader.startsWith("Bearer ")
+          ? authHeader.slice(7)
+          : authHeader;
+
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const userId = decoded.userId;
+        if (!userId) {
+          return res.status(401).json({ ok: false, error: "Не авторизован." });
+        }
+
+        const user = await prisma.user.findUnique({
+          where: { id: Number(userId) }
+        });
+
+        if (!user || !isAdminPhone(user.phone)) {
+          return res.status(403).json({ ok: false, error: "Доступ запрещён." });
+        }
+
+        const orders = await prisma.order.findMany({
+          orderBy: { createdAt: "desc" }
+        });
+
+        const numericUserIds = [
+          ...new Set(
+            orders
+              .map((order) => Number(order.userId))
+              .filter((id) => Number.isFinite(id))
+          )
+        ];
+
+        const users = numericUserIds.length
+          ? await prisma.user.findMany({
+              where: { id: { in: numericUserIds } }
+            })
+          : [];
+
+        const usersById = Object.fromEntries(users.map((item) => [String(item.id), item]));
+
+        const grouped = new Map();
+
+        for (const order of orders) {
+          const key = String(order.userId);
+          const customer = usersById[order.userId];
+
+          if (!grouped.has(key)) {
+            grouped.set(key, {
+              id: key,
+              userId: order.userId,
+              userName: customer?.name || "Неизвестный пользователь",
+              userPhone: customer?.phone || "—",
+              homeaddress: customer?.homeaddress || null,
+              homeentrance: customer?.homeentrance || null,
+              homeapartment: customer?.homeapartment || null,
+              createdAt: order.createdAt,
+              items: [],
+              total: 0
+            });
+          }
+
+          const group = grouped.get(key);
+
+          if (new Date(order.createdAt) > new Date(group.createdAt)) {
+            group.createdAt = order.createdAt;
+          }
+
+          group.items.push({
+            id: order.id,
+            pizzaName: order.pizzaName,
+            pizzaSize: order.pizzaSize,
+            pizzaPrice: order.pizzaPrice,
+            count: order.count,
+            total: order.total,
+            paymentMethod: order.paymentMethod,
+            createdAt: order.createdAt,
+            take: order.take,
+            complete: order.complete
+          });
+          group.total += order.total;
+        }
+
+        const groupedOrders = Array.from(grouped.values()).sort(
+          (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+        );
+
+        return res.status(200).json({
+          ok: true,
+          orders: groupedOrders
+        });
+      } catch (error) {
+        console.error("Failed to load admin orders:", error);
+        return res.status(500).json({
+          ok: false,
+          error: "Не удалось загрузить заказы."
+        });
+      }
+    });
+
+    server.get("/api/courier/orders", async (req, res) => {
+      try {
+        const authHeader = req.headers.authorization;
+        if (!authHeader) {
+          return res.status(401).json({ ok: false, error: "Не авторизован." });
+        }
+
+        const token = authHeader.startsWith("Bearer ")
+          ? authHeader.slice(7)
+          : authHeader;
+
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const userId = decoded.userId;
+        if (!userId) {
+          return res.status(401).json({ ok: false, error: "Не авторизован." });
+        }
+
+        let orders = await prisma.order.findMany({
+          where: {
+            idCourier: String(userId),
+            ComplDelevery: false,
+          },
+        });
+
+        if (!orders.length) {
+          orders = await prisma.order.findMany({
+            where: {
+              complete: true,
+              ComplDelevery: false,
+              idCourier: null,
+            },
+          });
+        }
+
+        const userIds = orders.map(order => Number(order.userId));
+
+        const users = await prisma.user.findMany({
+          where: {
+            id: {
+              in: userIds,
+            },
+          },
+        });
+
+        const grouped = Object.values(
+          orders.reduce((acc, order) => {
+            const user = users.find(
+              user => user.id === Number(order.userId)
+            );
+
+            (acc[order.userId] ??= {
+              userId: order.userId,
+              courierId: userId,
+              homeaddress: user?.homeaddress,               
+              homeentrance: user?.homeentrance,               
+              homeapartment: user?.homeapartment,  
+              orders: []
+            }).orders.push(order);
+        
+            return acc;
+          }, {})
+        );
+
+        return res.status(200).json({ ok: true, orders: grouped});
+        
+      } catch (error) {
+        console.error("Failed to load courier orders:", error);
+        return res.status(500).json({
+          ok: false,
+          error: "Не удалось загрузить заказы."
+        });
+      }
+    })
+
+    server.post('/api/admin/orders/processing', async (req, res) => {
+      try {
+        const authHeader = req.headers.authorization;
+        if (!authHeader) {
+          return res.status(401).json({ ok: false, error: "Не авторизован." });
+        }
+
+        const token = authHeader.startsWith("Bearer ")
+          ? authHeader.slice(7)
+          : authHeader;
+
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const userId = decoded.userId;
+        if (!userId) {
+          return res.status(401).json({ ok: false, error: "Не авторизован." });
+        }
+
+        const { orderId } = req.body || {};
+        const normalizedOrderId = Number(orderId);
+        if (!normalizedOrderId) {
+          return res.status(400).json({ ok: false, error: "Не все данные заполнены." });
+        }
+        const order = await prisma.order.findMany({
+          where: { userId: String(normalizedOrderId) }
+        });
+        
+        if (order.length === 0) {
+          return res.status(400).json({ ok: false, error: "Заказ уже в обработке." });
+        }
+
+        await prisma.order.updateMany({
+          where: { userId: String(normalizedOrderId) },
+          data: { take: true }
+        });
+        return res.status(200).json({ ok: true, message: "Заказ взят в обработку." });
+      }catch (error){
+        console.error("Failed to process order:", error);
+        return res.status(500).json({ ok: false, error: "Не удалось взять заказ в обработку." });
+      }
+    });
+
+    server.post('/api/courier/orders/take', async (req, res) => {
+      try {
+        const authHeader = req.headers.authorization;
+        if (!authHeader) {
+          return res.status(401).json({ ok: false, error: "Не авторизован." });
+        }
+
+        const token = authHeader.startsWith("Bearer ")
+          ? authHeader.slice(7)
+          : authHeader;
+
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const userId = decoded.userId;
+        if (!userId) {
+          return res.status(401).json({ ok: false, error: "Не авторизован." });
+        }
+
+        const { orderId } = req.body || {};
+        const normalizedOrderId = Number(orderId);
+        if (!normalizedOrderId) {
+          return res.status(400).json({ ok: false, error: "Не все данные заполнены." });
+        }
+
+        await prisma.order.updateMany({
+          where: { userId: String(normalizedOrderId), complete: true },
+          data: { idCourier: String(userId) }
+        });
+        return res.status(200).json({ ok: true, message: "Заказ взят." });
+      } catch (error) {
+        console.error("Failed to take order:", error);
+        return res.status(500).json({ ok: false, error: "Не удалось взять заказ." });
+      }
+    })
+
+    server.post('/api/courier/complete/delivery', async (req, res) => {
+      try{
+        const authHeader = req.headers.authorization;
+        if (!authHeader) {
+          return res.status(401).json({ ok: false, error: "Не авторизован." });
+        }
+
+        const token = authHeader.startsWith("Bearer ")
+          ? authHeader.slice(7)
+          : authHeader;
+
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const userId = decoded.userId;
+        if (!userId) {
+          return res.status(401).json({ ok: false, error: "Не авторизован." });
+        }
+
+        const { usersId } = req.body || {};
+        const normalizedUsersId = Number(usersId);
+        if (!normalizedUsersId) {
+          return res.status(400).json({ ok: false, error: "Не все данные заполнены." });
+        }
+
+        await prisma.order.updateMany({
+          where: {userId: String(normalizedUsersId), complete: true, idCourier: String(userId)},
+          data: {ComplDelevery: true}
+        });
+         return res.status(200).json({ok: true, complDelivery: true});
+      } catch (error) {
+        console.log(error)
+      }
+    })
+
+    server.get("/api/admin/orders/processing", async (req, res) => {
+      try {
+        const authHeader = req.headers.authorization;
+        if (!authHeader) {
+          return res.status(401).json({ ok: false, error: "Не авторизован." });
+        }
+
+        const token = authHeader.startsWith("Bearer ")
+          ? authHeader.slice(7)
+          : authHeader;
+
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        if (!decoded.userId) {
+          return res.status(401).json({ ok: false, error: "Не авторизован." });
+        }
+
+        const user = await prisma.user.findUnique({
+          where: { id: Number(decoded.userId) }
+        });
+
+        if (!user || !isAdminPhone(user.phone)) {
+          return res.status(403).json({ ok: false, error: "Доступ запрещён." });
+        }
+
+        const orders = await prisma.order.findMany({
+          orderBy: { createdAt: "desc" }
+        });
+
+        return res.status(200).json({ ok: true, orders });
+      } catch (error) {
+        console.error("Failed to load processing order:", error);
+        return res.status(500).json({
+          ok: false,
+          error: "Не удалось загрузить обработанные заказы."
+        });
+      }
+    });
+
+    server.post("/user/orders", async (req, res) => {
+      try {
+        const authHeader = req.headers.authorization;
+        if (!authHeader) {
+          return res.status(401).json({ ok: false, error: "Не авторизован." });
+        }
+
+        const token = authHeader.startsWith("Bearer ")
+          ? authHeader.slice(7)
+          : authHeader;
+
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const userId = decoded.userId;
+        if (!userId) {
+          return res.status(401).json({ ok: false, error: "Не авторизован." });
+        }
+
+        const orders = await prisma.order.findMany({
+          where: {
+            userId: String(userId)
+          },
+          orderBy: {
+            createdAt: "desc"
+          }
+        });
+
+        return res.status(200).json({
+          ok: true,
+          orders: orders,
+          message: "Запрос прошел успешно"
+        });
+      } catch (error) {
+        console.error("Failed to load user orders:", error);
+        if (error?.name === "JsonWebTokenError" || error?.name === "TokenExpiredError") {
+          return res.status(401).json({ ok: false, error: "Не авторизован." });
+        }
+        return res.status(500).json({
+          ok: false,
+          error: "Не удалось загрузить заказы."
+        });
+      }
+    });
+
+    server.post("/api/admin/orders/complete", async (req, res) => {
+      try{
+        const authHeader = req.headers.authorization;
+        if (!authHeader) {
+          return res.status(401).json({ ok: false, error: "Не авторизован." });
+        }
+
+        const token = authHeader.startsWith("Bearer ")
+          ? authHeader.slice(7)
+          : authHeader;
+
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const userId = decoded.userId;
+        if (!userId) {
+          return res.status(401).json({ ok: false, error: "Не авторизован." });
+        }
+
+        const user = await prisma.user.findUnique({
+          where: { id: Number(userId) }
+        });
+
+        if (!user || !isAdminPhone(user.phone)) {
+          return res.status(403).json({ ok: false, error: "Доступ запрещён." });
+        }
+
+        const { orderID } = req.body || {};
+        const normalizedOrderId = Number(orderID);
+ 
+        if (!normalizedOrderId) {
+          return res.status(400).json({ ok: false, error: "Не все данные заполнены." });
+        }
+        const order = await prisma.order.findMany({
+          where: { userId: String(normalizedOrderId) }
+        });
+        
+        if (order.length === 0) {
+          return res.status(400).json({ ok: false, error: "Заказ уже в обработке." });
+        }
+
+        await prisma.order.updateMany({
+          where: { userId: String(normalizedOrderId) },
+          data: { complete: true }
+        });
+        return res.status(200).json({ ok: true, message: "Заказ взят в обработку." });
+      }catch(error){
+        console.error("Failed to process order:", error);
+        return res.status(500).json({ ok: false, error: "Не удалось взять заказ в обработку." });
+      }
+    })
 
     server.all("/{*any}", (req, res) => handle(req, res));
 

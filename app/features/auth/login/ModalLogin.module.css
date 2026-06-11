@@ -428,6 +428,16 @@
   margin: 0 0 8px;
 }
 
+.adminTitle {
+  margin: 0 0 16px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-align: center;
+  text-transform: uppercase;
+  color: #c45c26;
+}
+
 .methodPicker {
   display: flex;
   flex-direction: column;

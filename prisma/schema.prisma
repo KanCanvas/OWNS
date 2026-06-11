@@ -27,6 +27,7 @@ enum PaymentMethod {
 
 model Order {
   id            Int           @id @default(autoincrement())
+  userId        String
   pizzaId       Int?
   pizzaName     String
   pizzaSize     String?
@@ -34,6 +35,10 @@ model Order {
   count         Int
   total         Int
   paymentMethod PaymentMethod
+  take          Boolean       @default(false)
+  complete      Boolean       @default(false)
+  idCourier     String?
+  ComplDelevery Boolean       @default(false)
   createdAt     DateTime      @default(now())
 }
 
@@ -48,5 +53,12 @@ model User {
   name          String
   phone         String
   smsCode       Int
+  homeaddress   String?
+  homeentrance  String?
+  homeapartment String?
+  officeaddress String?
+  officename    String?
+  officefloor   String?
+  officecabinet String?
 }
   

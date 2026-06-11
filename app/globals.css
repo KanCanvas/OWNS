@@ -35,7 +35,7 @@ body {
 }
 
 .header-inner {
-  min-height: 86px;
+  min-height: 124px;
   display: flex;
   align-items: center;
   gap: 18px;
@@ -45,30 +45,46 @@ body {
 .brand-wrap {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 2px;
   text-decoration: none;
   color: inherit;
-  min-width: 220px;
+  flex-shrink: 0;
+  width: fit-content;
 }
 
-.brand-icon {
-  font-size: 1.1rem;
+.brand-logo {
+  display: block;
+  width: 118px;
+  height: 118px;
+  max-width: 118px;
+  max-height: 118px;
+  object-fit: contain;
+  object-position: left center;
+  margin-right: -14px;
+  flex-shrink: 0;
 }
 
-.brand-text {
-  display: flex;
-  flex-direction: column;
+.brand-tagline {
+  display: block;
+}
+
+.brand-tagline-top,
+.brand-tagline-bottom {
+  display: block;
   line-height: 1.2;
 }
 
-.brand {
-  font-size: 0.95rem;
-  letter-spacing: 0.03em;
+.brand-tagline-top {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #2b2b2b;
+  margin-bottom: 3px;
 }
 
-.brand-caption {
-  font-size: 0.58rem;
-  color: #9c9c9c;
+.brand-tagline-bottom {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #f07830;
 }
 
 .search-wrap {
@@ -427,38 +443,6 @@ body {
   font-size: 0.85rem;
 }
 
-.pagination {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  justify-content: center;
-  margin-top: 270px;
-  color: #999;
-  font-size: 0.7rem;
-}
-
-.page-btn,
-.page-arrow {
-  width: 24px;
-  height: 24px;
-  border: 1px solid #e8e8e8;
-  border-radius: 7px;
-  background: #fff;
-  color: #aaa;
-  font-size: 0.73rem;
-  cursor: pointer;
-}
-
-.page-btn.active {
-  background: #ff7c2f;
-  border-color: #ff7c2f;
-  color: #fff;
-}
-
-.page-total {
-  margin-left: 6px;
-}
-
 .subtitle {
   color: #4d4d4d;
   max-width: 700px;
@@ -566,6 +550,33 @@ body {
   color: #8a786f;
 }
 
+.account-admin-panel {
+  margin-top: 22px;
+  padding: 18px;
+  border: 1px solid #ffdccc;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #fff4ec 0%, #fff 100%);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.account-admin-text {
+  margin: 0;
+  color: #8a786f;
+  max-width: 420px;
+  line-height: 1.5;
+}
+
+.account-orders-btn {
+  min-width: 140px;
+  text-align: center;
+  text-decoration: none;
+  font-weight: 700;
+}
+
 .account-actions {
   display: flex;
   gap: 12px;
@@ -599,6 +610,10 @@ body {
   .header-inner {
     flex-wrap: wrap;
     padding: 10px 0;
+  }
+
+  .brand-tagline {
+    display: none;
   }
 
   .search-wrap {

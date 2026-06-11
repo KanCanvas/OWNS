@@ -5,46 +5,104 @@ import { useForm } from "react-hook-form";
 import { ComponentRegister } from "../register/ComponentRegister";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import axios from "axios";
 import { saveAuthSession } from "../../../../lib/auth-storage";
+import { modelLogin } from "./modelLogin";
+import { modelAdminLogin } from "./AdminLogin/modelAdminLogin";
+import { modelCourierLogin } from "./CourierLogin/modelCourierLogin"
+
 
 export default function ModalLogin({ isOpen, onClose }) {
-  const { register, handleSubmit, reset } = useForm();
+  const { register, handleSubmit, reset, setValue } = useForm();
   const telegramBotUrl = "https://t.me/OwnPizza_auth_bot";
   const router = useRouter();
 
   const [stateAuth, setStateAuth] = useState(false);
   const [loginMethod, setLoginMethod] = useState(null);
+  const [adminLoginStep, setAdminLoginStep] = useState(false);
+  const [courierLoginStep, setCourierLoginStep] = useState(false);
 
   useEffect(() => {
     reset();
+    setAdminLoginStep(false);
+    setCourierLoginStep(false)
   }, [loginMethod, reset]);
 
   if (!isOpen) return null;
 
-  const onSubmit = async (data) => {
-    try {
-      const response = await axios.post("/api/auth/login", data);
-      console.log("Полный ответ:", response);
-      console.log("Данные от сервера:", response.data);
-      console.log("Статус:", response.status);
-      if (response.status === 200 || response.status === 201) {
-        const { token, user } = response.data;
-        saveAuthSession({ token, user });
+  const handleFormSubmit = async (data) => {
+    if (
+      loginMethod === "telegram" &&
+      !adminLoginStep &&
+      data.password === undefined &&
+      String(data.phone).replace(/\D/g, "") ===
+        String(process.env.NEXT_PUBLIC_ADMIN_PHONE).replace(/\D/g, "")
+    ) {
+      setValue("phone", data.phone);
+      setAdminLoginStep(true);
+      return;
+    }
+
+    // Если это курьер то... делаем проверку и меням состояние на true у состояние courierLoginStep
+    if (
+      loginMethod === "telegram" &&
+      !courierLoginStep &&
+      data.password === undefined &&
+      String(data.phone).replace(/\D/g, "") ===
+        String(process.env.NEXT_PUBLIC_COURIER_PHONE).replace(/\D/g, "")
+    ) {
+      setValue("phone", data.phone);
+      setCourierLoginStep(true);
+      return;
+    }
+
+    // После ввода пароля Админа, не нужно отправлять данные на сервер
+    const shouldUserLogin =
+      !adminLoginStep && (loginMethod === "email" || data.password === undefined);
+    if (shouldUserLogin) {
+      await onSubmit(data);
+      return;
+    }
+
+    if (adminLoginStep) {
+      const response = await modelAdminLogin(data);
+      if (!response) {
+        alert("Ошибка при входе");
+        return;
+      }
+      alert(response.message || response.error || "Ошибка при входе");
+      if (response.ok) {
+        const { token, user } = response;
+        saveAuthSession({
+          token,
+          user: { ...user, isAdmin: true }
+        });
         reset();
         onClose?.();
         router.push("/account");
       }
-    } catch (error) {
-      console.error("Failed to login:", error);
-      if (error.response) {
-        console.log("Ответ сервера с ошибкой:", error.response.data);
-        console.log("Статус ошибки:", error.response.status);
-        alert(error.response.data.error);
-      } else {
+    }
+    if(courierLoginStep) {
+      const response = await modelCourierLogin(data);
+      if (!response) {
         alert("Ошибка при входе");
+        return;
+      }
+      alert(response.message || response.error || "Ошибка при входе");
+      if (response.ok) {
+        const { token, user } = response;
+        saveAuthSession({
+          token,
+          user: { ...user, isCourier: true }
+        });
+        reset();
+        onClose?.();
+        router.push("/account");
       }
     }
+  };
+
+  const onSubmit = async (data) => {
+    return await modelLogin(data, { reset, onClose, router });
   };
 
   return (
@@ -107,10 +165,10 @@ export default function ModalLogin({ isOpen, onClose }) {
         </div>
 
         {stateAuth ? (
-          <ComponentRegister />
+          <ComponentRegister onClose={onClose} />
         ) : (
           <form
-            onSubmit={handleSubmit(onSubmit)}
+            onSubmit={handleSubmit(handleFormSubmit)}
             className={styles.form}
             autoComplete="on"
           >
@@ -200,6 +258,74 @@ export default function ModalLogin({ isOpen, onClose }) {
 
             {loginMethod === "telegram" && (
               <>
+                {adminLoginStep ? (
+                  <>
+                    <p className={styles.adminTitle}>АДМИН ВХОД</p>
+                    <input type="hidden" {...register("phone")} />
+
+                    <label className={styles.field}>
+                      <span className={styles.fieldLabel}>Пароль</span>
+                      <div className={styles.inputWrap}>
+                        <span className={styles.inputIcon} aria-hidden>
+                          🔒
+                        </span>
+                        <input
+                          {...register("password", { required: true })}
+                          type="password"
+                          className={styles.input}
+                          placeholder="Введите пароль"
+                          autoComplete="current-password"
+                        />
+                      </div>
+                    </label>
+
+                    <button type="submit" className={styles.primaryBtn}>
+                      Войти
+                    </button>
+
+                    <button
+                      type="button"
+                      className={styles.linkBtn}
+                      onClick={() => setAdminLoginStep(false)}
+                    >
+                      Назад
+                    </button>
+                  </>
+                ) : courierLoginStep ? (
+                  <>
+                    <p className={styles.adminTitle}>ВХОД КУРЬЕРА</p>
+                    <input type="hidden" {...register("phone")} />
+
+                    <label className={styles.field}>
+                      <span className={styles.fieldLabel}>Пароль</span>
+                      <div className={styles.inputWrap}>
+                        <span className={styles.inputIcon} aria-hidden>
+                          🔒
+                        </span>
+                        <input
+                          {...register("password", { required: true })}
+                          type="password"
+                          className={styles.input}
+                          placeholder="Введите пароль"
+                          autoComplete="current-password"
+                        />
+                      </div>
+                    </label>
+
+                    <button type="submit" className={styles.primaryBtn}>
+                      Войти
+                    </button>
+
+                    <button
+                      type="button"
+                      className={styles.linkBtn}
+                      onClick={() => setAdminLoginStep(false)}
+                    >
+                      Назад
+                    </button>
+                  </>
+                ) : (
+                  <>
                 <label className={styles.field}>
                   <span className={styles.fieldLabel}>Номер телефона</span>
                   <div className={styles.inputWrap}>
@@ -235,6 +361,8 @@ export default function ModalLogin({ isOpen, onClose }) {
                 <button type="submit" className={styles.primaryBtn}>
                   Войти
                 </button>
+                  </>
+                )}
               </>
             )}
 

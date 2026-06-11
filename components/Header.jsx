@@ -29,10 +29,16 @@ export default function Header() {
     <header className="header">
       <div className="container header-inner">
         <Link href="/" className="brand-wrap">
-          <span className="brand-icon">🍕</span>
-          <span className="brand-text">
-            <strong className="brand">OWN PIZZA</strong>
-            <span className="brand-caption">ВКУСНЕЕ УЖЕ НЕКУДА</span>
+          <img
+            src="/img/logo.png"
+            alt="OwnPizza"
+            className="brand-logo"
+            width={118}
+            height={118}
+          />
+          <span className="brand-tagline">
+            <span className="brand-tagline-top">Каждый кусочек</span>
+            <span className="brand-tagline-bottom">попадание в цель</span>
           </span>
         </Link>
 
@@ -55,7 +61,7 @@ export default function Header() {
               Войти
             </button>
           )}
-          <BasketModal />
+          <BasketModal onRequireLogin={() => setIsModalOpen(true)} />
           <ModalLogin isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
         </div>
       </div>

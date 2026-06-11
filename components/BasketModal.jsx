@@ -3,6 +3,11 @@
 import { createPortal } from "react-dom";
 import { useCallback, useEffect, useId, useState } from "react";
 import styles from "./BasketModal.module.css";
+import { getStoredUser } from "../lib/auth-storage";
+import { CartContext } from "@/app/context/CartProvider";
+import { useContext } from "react";
+import modelUserAddress from "../app/features/userData/userAddress/modelUserAddres"
+
 
 function getWithExpiry(key) {
   const itemStr = localStorage.getItem(key);
@@ -21,19 +26,6 @@ function getWithExpiry(key) {
   return item.value;
 }
 
-function readStoredPizza() {
-  if (typeof window === "undefined") return null;
-  try {
-    const raw = localStorage.getItem("pizza");
-    if (!raw) return null;
-    const data = JSON.parse(raw);
-    if (!data || typeof data !== "object") return null;
-    return data;
-  } catch {
-    return null;
-  }
-}
-
 function pizzaWord(n) {
   const abs = Math.abs(n) % 100;
   const last = abs % 10;
@@ -43,25 +35,94 @@ function pizzaWord(n) {
   return "пицц";
 }
 
-export default function BasketModal() {
+function DeliveryField({ id, label, name, value, onChange, placeholder, disabled }) {
+  return (
+    <div className={styles.deliveryFieldGroup}>
+      <label htmlFor={id} className={styles.deliveryFieldLabel}>
+        {label}
+      </label>
+      <input
+        id={id}
+        type="text"
+        name={name}
+        value={value}
+        onChange={onChange}
+        className={styles.deliveryInput}
+        placeholder={placeholder}
+        disabled={disabled}
+      />
+    </div>
+  );
+}
+
+export default function BasketModal({ onRequireLogin }) {
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
-  const [cartCount, setCartCount] = useState(0);
-  const [cartPizza, setCartPizza] = useState(null);
+  const [cartItems, setCartItems] = useState([]);
   const [isOrdering, setIsOrdering] = useState(false);
   const [orderError, setOrderError] = useState("");
   const [orderSuccess, setOrderSuccess] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("CASH");
+  const [deliveryPlace, setDeliveryPlace] = useState("HOME");
+  const { cartItem, setCartItem } = useContext(CartContext);
+  const [trigger, setTrigger] = useState(false);
+
+  const [deliveryData, setDeliveryData] = useState({
+    homeAddress: "",
+    homeEntrance: "",
+    homeApartment: "",
+  
+    officeAddress: "",
+    officeOrganization: "",
+    officeFloor: "",
+    officeRoom: "",
+  });
+
+  const handleDeliveryChange = (e) => {
+    const { name, value } = e.target;
+  
+    setDeliveryData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
   const titleId = useId();
+  const deliveryFieldsId = useId();
 
   useEffect(() => setMounted(true), []);
 
   const syncCartFromStorage = useCallback(() => {
     if (typeof window === "undefined") return;
-    const rawCount = getWithExpiry("countPizza");
-    const n = Number(rawCount);
-    setCartCount(Number.isFinite(n) && n > 0 ? n : 0);
-    setCartPizza(readStoredPizza());
+    const rawCart = getWithExpiry("cartItems");
+    if (!rawCart || typeof rawCart !== "object" || Object.keys(rawCart).length === 0) {
+      const rawCartLocal = JSON.parse(localStorage.getItem("cartElements") || "{}");
+      const items = Object.values(rawCartLocal)
+      .map((item) => {
+        const count = Number(item?.count ?? 0);
+        if (!Number.isFinite(count) || count <= 0) return null;
+        return {
+          ...item,
+          count
+        };
+      })
+      .filter(Boolean);
+
+      setCartItems(items);
+      return;
+    }
+    const items = Object.values(rawCart)
+      .map((item) => {
+        const count = Number(item?.count ?? 0);
+        if (!Number.isFinite(count) || count <= 0) return null;
+        return {
+          ...item,
+          count
+        };
+      })
+      .filter(Boolean);
+
+    setCartItems(items);
   }, []);
 
   useEffect(() => {
@@ -76,10 +137,24 @@ export default function BasketModal() {
     setOpen(true);
   };
 
+  const cartCount = cartItems.reduce((sum, item) => sum + item.count, 0);
+  const cartTotal = cartItems.reduce(
+    (sum, item) => sum + (typeof item.price === "number" ? item.price * item.count : 0),
+    0
+  );
+
   const handleOrder = async () => {
-    if (!cartPizza || cartCount <= 0) {
+    if (cartItems.length === 0 || cartCount <= 0) {
       setOrderError("Корзина пуста. Добавьте пиццу перед заказом.");
       setOrderSuccess("");
+      return;
+    }
+
+    if (!getStoredUser()) {
+      setOrderError("");
+      setOrderSuccess("");
+      setOpen(false);
+      onRequireLogin?.();
       return;
     }
 
@@ -94,20 +169,28 @@ export default function BasketModal() {
     setOrderSuccess("");
 
     try {
+      setCartItem(cartItems);
+      const token = localStorage.getItem("token");
       const response = await fetch("/order", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
         },
         body: JSON.stringify({
-          pizza: cartPizza,
+          // Оставляем старые поля для совместимости с текущим backend /order.
+          pizza: cartItems || null,
           count: cartCount,
-          total:
-            typeof cartPizza.price === "number" ? cartPizza.price * cartCount : null,
+          total: cartTotal,
           paymentMethod,
           createdAt: new Date().toISOString(),
+          address: deliveryData.homeAddress,
+          entrance: deliveryData.homeEntrance,
+          apartment: deliveryData.homeApartment,
         }),
       });
+
+      setTrigger(true);
 
       let payload = null;
       try {
@@ -118,7 +201,7 @@ export default function BasketModal() {
 
       if (!response.ok || !payload?.ok) {
         const message =
-          payload?.error || `Сервер ответил ${response.status}. Попробуйте позже.`;
+          payload?.error || `Сервер ответил ${response.status} ${payload.message}.`;
         throw new Error(message);
       }
 
@@ -151,6 +234,20 @@ export default function BasketModal() {
       document.body.style.overflow = prevOverflow;
     };
   }, [open]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const token = localStorage.getItem("token");
+      const userAddres = await modelUserAddress(token);
+      setDeliveryData((prev) => ({
+        ...prev,
+        homeAddress: userAddres?.address?.homeaddress || "",
+        homeEntrance: userAddres?.address?.homeentrance || "",
+        homeApartment: userAddres?.address?.homeapartment || ""
+      }))
+    }
+    fetchData()
+  }, [])
 
   const modal = open && (
     <>
@@ -193,51 +290,157 @@ export default function BasketModal() {
             <p className={styles.empty}>
               Пока пусто — добавьте пиццу из меню.
             </p>
-          ) : cartPizza ? (
-            <article className={styles.card}>
-              <div className={styles.cardMain}>
-                <div className={styles.thumb} aria-hidden>
-                  {cartPizza.image ? (
-                    <img
-                      src={cartPizza.image}
-                      alt=""
-                      className={styles.thumbImg}
-                    />
-                  ) : (
-                    <span className={styles.thumbPlaceholder}>🍕</span>
-                  )}
-                </div>
-                <div className={styles.info}>
-                  <div className={styles.titleRow}>
-                    <h3 className={styles.itemTitle}>{cartPizza.name}</h3>
-                    <span className={styles.qty}>×{cartCount}</span>
+          ) : (
+            <>
+              {cartItems.map((item) => (
+                <article key={item.id || item.name} className={styles.card}>
+                  <div className={styles.cardMain}>
+                    <div className={styles.thumb} aria-hidden>
+                      {item.image ? (
+                        <img
+                          src={item.image}
+                          alt=""
+                          className={styles.thumbImg}
+                        />
+                      ) : (
+                        <span className={styles.thumbPlaceholder}>🍕</span>
+                      )}
+                    </div>
+                    <div className={styles.info}>
+                      <div className={styles.titleRow}>
+                        <h3 className={styles.itemTitle}>{item.name}</h3>
+                        <span className={styles.qty}>×{item.count}</span>
+                      </div>
+                      {item.description ? (
+                        <p className={styles.desc}>{item.description}</p>
+                      ) : null}
+                      {typeof item.price === "number" ? (
+                        <p className={styles.meta}>
+                          {item.price.toLocaleString("ru-RU")} ₸ × {item.count}
+                        </p>
+                      ) : null}
+                    </div>
                   </div>
-                  {cartPizza.description ? (
-                    <p className={styles.desc}>{cartPizza.description}</p>
-                  ) : null}
-                  {typeof cartPizza.price === "number" ? (
-                    <p className={styles.meta}>
-                      {cartPizza.price.toLocaleString("ru-RU")} ₸ × {cartCount}
-                    </p>
-                  ) : null}
-                </div>
-              </div>
-              {typeof cartPizza.price === "number" ? (
+                </article>
+              ))}
+              <article className={styles.card}>
                 <div className={styles.total}>
                   <span>Итого</span>
-                  <strong>
-                    {(cartPizza.price * cartCount).toLocaleString("ru-RU")} ₸
-                  </strong>
+                  <strong>{cartTotal.toLocaleString("ru-RU")} ₸</strong>
                 </div>
-              ) : null}
-            </article>
-          ) : (
-            <p className={`${styles.empty} ${styles.emptyMuted}`}>
-              Данные о пицце не найдены. Добавьте позицию ещё раз.
-            </p>
+              </article>
+            </>
           )}
 
-          {cartCount > 0 && cartPizza ? (
+          {cartCount > 0 && cartItems.length > 0 ? (
+            <section className={styles.delivery} aria-label="Адрес доставки">
+              <h3 className={styles.deliveryTitle}>Адрес доставки</h3>
+
+              <div
+                className={styles.deliveryTabs}
+                role="radiogroup"
+                aria-label="Тип адреса доставки"
+              >
+                <button
+                  type="button"
+                  role="radio"
+                  aria-checked={deliveryPlace === "HOME"}
+                  className={`${styles.deliveryTab} ${
+                    deliveryPlace === "HOME" ? styles.deliveryTabActive : ""
+                  }`}
+                  onClick={() => setDeliveryPlace("HOME")}
+                  disabled={isOrdering}
+                >
+                  Дом
+                </button>
+                <button
+                  type="button"
+                  role="radio"
+                  aria-checked={deliveryPlace === "OFFICE"}
+                  className={`${styles.deliveryTab} ${
+                    deliveryPlace === "OFFICE" ? styles.deliveryTabActive : ""
+                  }`}
+                  onClick={() => setDeliveryPlace("OFFICE")}
+                  disabled={isOrdering}
+                >
+                  Офис
+                </button>
+              </div>
+
+              <div className={styles.deliveryPanel}>
+              <div className={styles.deliveryFields}>
+                {deliveryPlace === "HOME" ? (
+                  <>
+                    <DeliveryField
+                      id={`${deliveryFieldsId}-home-address`}
+                      label="Адрес"
+                      name="homeAddress"
+                      placeholder="ул. Абая, 10"
+                      disabled={isOrdering}
+                      value={deliveryData.homeAddress}
+                      onChange={handleDeliveryChange}
+                    />
+                    <div className={styles.deliveryRow}>
+                      <DeliveryField
+                        id={`${deliveryFieldsId}-home-entrance`}
+                        label="Подъезд"
+                        name="homeEntrance"
+                        placeholder="3"
+                        disabled={isOrdering}
+                        value={deliveryData.homeEntrance}
+                        onChange={handleDeliveryChange}
+                      />
+                      <DeliveryField
+                        id={`${deliveryFieldsId}-home-apartment`}
+                        label="Квартира"
+                        name="homeApartment"
+                        placeholder="42"
+                        disabled={isOrdering}
+                        value={deliveryData.homeApartment}
+                        onChange={handleDeliveryChange}
+                      />
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <DeliveryField
+                      id={`${deliveryFieldsId}-office-address`}
+                      label="Адрес"
+                      name="officeAddress"
+                      placeholder="ул. Достык, 28"
+                      disabled={isOrdering}
+                    />
+                    <DeliveryField
+                      id={`${deliveryFieldsId}-office-org`}
+                      label="Организация"
+                      name="officeOrganization"
+                      placeholder='ТОО «Компания»'
+                      disabled={isOrdering}
+                    />
+                    <div className={styles.deliveryRow}>
+                      <DeliveryField
+                        id={`${deliveryFieldsId}-office-floor`}
+                        label="Этаж"
+                        name="officeFloor"
+                        placeholder="5"
+                        disabled={isOrdering}
+                      />
+                      <DeliveryField
+                        id={`${deliveryFieldsId}-office-room`}
+                        label="Кабинет"
+                        name="officeRoom"
+                        placeholder="512"
+                        disabled={isOrdering}
+                      />
+                    </div>
+                  </>
+                )}
+              </div>
+              </div>
+            </section>
+          ) : null}
+
+          {cartCount > 0 && cartItems.length > 0 ? (
             <div
               className={styles.payment}
               role="radiogroup"
@@ -255,7 +458,7 @@ export default function BasketModal() {
                   onClick={() => setPaymentMethod("CASH")}
                   disabled={isOrdering}
                 >
-                  💵 Наличные
+                  Наличные
                 </button>
                 <button
                   type="button"
@@ -267,7 +470,7 @@ export default function BasketModal() {
                   onClick={() => setPaymentMethod("KASPI")}
                   disabled={isOrdering}
                 >
-                  📱 Kaspi перевод
+                  Kaspi перевод
                 </button>
               </div>
             </div>
@@ -280,7 +483,7 @@ export default function BasketModal() {
             type="button"
             className={styles.orderBtn}
             onClick={() => handleOrder()}
-            disabled={isOrdering || cartCount <= 0 || !cartPizza}
+            disabled={isOrdering || cartCount <= 0 || cartItems.length === 0}
           >
             {isOrdering ? "Отправляем..." : "Заказать"}
           </button>

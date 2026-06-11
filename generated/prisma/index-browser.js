@@ -133,6 +133,7 @@ exports.Prisma.PizzaScalarFieldEnum = {
 
 exports.Prisma.OrderScalarFieldEnum = {
   id: 'id',
+  userId: 'userId',
   pizzaId: 'pizzaId',
   pizzaName: 'pizzaName',
   pizzaSize: 'pizzaSize',
@@ -140,6 +141,10 @@ exports.Prisma.OrderScalarFieldEnum = {
   count: 'count',
   total: 'total',
   paymentMethod: 'paymentMethod',
+  take: 'take',
+  complete: 'complete',
+  idCourier: 'idCourier',
+  ComplDelevery: 'ComplDelevery',
   createdAt: 'createdAt'
 };
 
@@ -153,7 +158,14 @@ exports.Prisma.UserScalarFieldEnum = {
   id: 'id',
   name: 'name',
   phone: 'phone',
-  smsCode: 'smsCode'
+  smsCode: 'smsCode',
+  homeaddress: 'homeaddress',
+  homeentrance: 'homeentrance',
+  homeapartment: 'homeapartment',
+  officeaddress: 'officeaddress',
+  officename: 'officename',
+  officefloor: 'officefloor',
+  officecabinet: 'officecabinet'
 };
 
 exports.Prisma.SortOrder = {

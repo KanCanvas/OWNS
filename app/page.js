@@ -2,42 +2,46 @@
 
 import { useEffect, useMemo, useState } from "react";
 import axios from "axios";
+import { CartContext } from "./context/CartProvider";
+import { useContext } from "react";
 
 const categories = ["Все", "Мясные", "Острые", "Вегетарианские", "С курицей"];
 
 const pizzas = [
   {
+    id: "pizza-1",
     name: "Сырный цыпленок",
     description:
       "Цыпленок, сырный соус, сыры чеддер и пармезан, орегано, соус томатный.",
-    price: 1500,
+    price: 2000,
     image: "/img/pizza 1.png",
-    action: "Добавить"
+    action: "Добавить",
   },
   {
+    id: "pizza-2",
     name: "Диабло",
     description:
       "Острая чоризо, острый перец халапеньо, соус барбекю, томаты, моцарелла.",
-    price: 1500,
+    price: 2000,
     image: "/img/pizza 2.png",
-    action: "Добавить"
+    action: "Добавить",
   },
   {
+    id: "pizza-3",
     name: "Чизбургер-пицца",
     description:
       "Мясной соус болоньезе бургер, моцарелла и фирменный томатный соус.",
-    price: 1500,
+    price: 2000,
     image: "/img/pizza 3.png",
-    counter: 1
   },
   {
+    id: "pizza-4",
     name: "Сырный цыпленок",
     description:
       "Цыпленок, шампиньоны, сыры чеддер и пармезан, томатный соус.",
-    price: 1500,
+    price: 2000,
     image: "/img/pizza 4.png",
-    action: "Добавить"
-  }
+  },
 ];
 
 function setWithExpiry(key, value, ttl) {
@@ -61,7 +65,6 @@ function getWithExpiry(key) {
   const item = JSON.parse(itemStr);
   const now = new Date();
 
-  // если время истекло
   if (now.getTime() > item.expiry) {
     localStorage.removeItem(key);
     return null;
@@ -76,11 +79,9 @@ export default function HomePage() {
   const [selectedIngredients, setSelectedIngredients] = useState([]);
   const [isLoadingIngredients, setIsLoadingIngredients] = useState(false);
   const [ingredientsError, setIngredientsError] = useState("");
+  const { cartItem } = useContext(CartContext);
 
-    const [countPizza, setCountPizza] = useState(() => {
-      const savedCount = getWithExpiry("countPizza");
-      return savedCount > 0 ? Number(savedCount) : 0;
-    });
+  const [cartItems, setCartItems] = useState({});
 
   const selectedPreview = useMemo(
     () => selectedIngredients.join(", "),
@@ -138,11 +139,112 @@ export default function HomePage() {
     );
   };
 
+  const getPizzaCount = (pizzaId) => {
+    const rawCount = cartItems[pizzaId]?.count ?? 0;
+    const safeCount = Number(rawCount);
+    if (!Number.isFinite(safeCount) || safeCount <= 0){
+      localStorage.setItem("cartElements", JSON.stringify({}));
+      return 0
+    };
+    return safeCount > 10 ? 10 : safeCount;
+  };
+  
+  const getPizzaLocal = (pizzaId) => {
+    const rawCount = JSON.parse(localStorage.getItem("cartElements") || "{}")[pizzaId]?.count ?? 0;
+    const safeCount = Number(rawCount);
+    if (!Number.isFinite(safeCount) || safeCount <= 0) return 0;
+    return safeCount > 10 ? 10 : safeCount;
+  };
+
+  const incrementPizza = (pizza) => {
+    setCartItems((prev) => {
+      const currentCount = Number(prev[pizza.id]?.count ?? 0);
+      const safeCurrent =
+        Number.isFinite(currentCount) && currentCount > 0 ? currentCount : 0;
+      const nextCount = safeCurrent >= 10 ? 10 : safeCurrent + 1;
+
+      return {
+        ...prev,
+        [pizza.id]: {
+          ...pizza,
+          count: nextCount,
+        },
+      };
+    });
+  };
+
+  const decrementPizza = (pizza) => {
+    setCartItems((prev) => {
+      const currentCount = Number(prev[pizza.id]?.count ?? 0);
+      const safeCurrent =
+        Number.isFinite(currentCount) && currentCount > 0 ? currentCount : 0;
+      const nextCount = safeCurrent <= 0 ? 0 : safeCurrent - 1;
+
+      if (nextCount <= 0) {
+        const nextItems = { ...prev };
+        delete nextItems[pizza.id];
+        return nextItems;
+      }
+
+      return {
+        ...prev,
+        [pizza.id]: {
+          ...pizza,
+          count: nextCount,
+        },
+      };
+    });
+  };
+
   useEffect(() => {
-    if(countPizza > 0) {
-      setWithExpiry("countPizza", countPizza, 60 * 60 * 1000);
+    const savedCart = getWithExpiry("cartItems");
+    if (savedCart && typeof savedCart === "object" && !Array.isArray(savedCart)) {
+      const nextCart = {};
+
+      for (const pizza of pizzas) {
+        const savedItem = savedCart[pizza.id];
+        if (!savedItem) continue;
+
+        const savedCount = Number(savedItem.count ?? 0);
+        if (!Number.isFinite(savedCount) || savedCount <= 0) continue;
+
+        nextCart[pizza.id] = {
+          ...pizza,
+          count: savedCount > 10 ? 10 : savedCount,
+        };
+      }
+
+      setCartItems(nextCart);
     }
-  }, [countPizza]);
+  }, []);
+
+  useEffect(() => {
+    setWithExpiry(
+      "cartItems",
+      cartItems,
+      60 * 60 * 1000
+    );
+
+    if(Object.keys(cartItems).length > 0) {
+      localStorage.setItem("cartElements", JSON.stringify(cartItems));
+      setTimeout(() => {
+        localStorage.removeItem("cartElements");
+        localStorage.removeItem("cartItems");
+        setCartItems({});
+      }, 500000);
+    }
+  }, [cartItems]);
+
+  useEffect(() => {
+    if(Object.keys(cartItem).length !== 0){
+      setCartItems({});
+      localStorage.removeItem("cartElements");
+      localStorage.removeItem("cartItems");
+    }
+    else {
+      return;
+    }
+  }, [cartItem]);
 
   return (
     <section className="home-mock">
@@ -169,7 +271,7 @@ export default function HomePage() {
 
       <div className="home-grid">
         {pizzas.map((pizza) => (
-          <article key={pizza.name + pizza.image} className="pizza-tile">
+          <article key={pizza.id} className="pizza-tile">
             <div className="pizza-image-wrap">
               <img
                 src={pizza.image}
@@ -181,52 +283,29 @@ export default function HomePage() {
             <p>{pizza.description}</p>
             <div className="pizza-bottom">
               <strong>от {pizza.price} ₸</strong>
-              {pizza.counter ? (
-                <div className="counter">
-                  <button type="button" onClick={() => { getWithExpiry("countPizza") === null? setCountPizza(0) : setCountPizza(prev => prev - 1)}}>-</button>
-                  <span>{getWithExpiry("countPizza") === null? 0 : countPizza < 0 ? 0: countPizza < 11 ? countPizza : 10}</span>
-                  {getWithExpiry("countPizza") === null? <button type="button" onClick={() => {setCountPizza(1); localStorage.setItem("pizza", JSON.stringify(pizza))}}>+</button> : countPizza < 10 && <button type="button" onClick={() => {setCountPizza(prev => prev + 1)}}>+</button>}
-                </div>
-              ) : (
-                <div className="pizza-actions">
-                  <button className="tiny-action" type="button">
-                    {pizza.action}
-                  </button>
-                  <button
-                    className="tiny-action tiny-action-accent"
-                    type="button"
-                    onClick={openConstructorModal}
-                  >
-                    Собрать
-                  </button>
-                </div>
-              )}
+              <div className="counter">
+                <button type="button" onClick={() => decrementPizza(pizza)}>
+                  -
+                </button>
+                <span>{getPizzaCount(pizza.id) === 0 ? getPizzaLocal(pizza.id): getPizzaCount(pizza.id)}</span>
+                <button
+                  type="button"
+                  disabled={getPizzaCount(pizza.id) >= 10}
+                  onClick={() => incrementPizza(pizza)}
+                >
+                  +
+                </button>
+              </div>
             </div>
           </article>
         ))}
       </div>
 
-      <div className="pagination">
-        <button type="button" className="page-arrow">
-          {"<"}
-        </button>
-        <button type="button" className="page-btn active">
-          1
-        </button>
-        <button type="button" className="page-btn">
-          2
-        </button>
-        <button type="button" className="page-btn">
-          3
-        </button>
-        <button type="button" className="page-arrow">
-          {">"}
-        </button>
-        <span className="page-total">10 из 65</span>
-      </div>
-
       {isModalOpen && (
-        <div className="constructor-modal-backdrop" onClick={closeConstructorModal}>
+        <div
+          className="constructor-modal-backdrop"
+          onClick={closeConstructorModal}
+        >
           <div
             className="constructor-modal"
             onClick={(event) => event.stopPropagation()}
@@ -245,9 +324,7 @@ export default function HomePage() {
             <div className="constructor-layout">
               <div className="constructor-preview">
                 <div className="constructor-preview-plate">
-                  <div className="constructor-preview-pizza">
-                    Твоя пицца
-                  </div>
+                  <div className="constructor-preview-pizza">Твоя пицца</div>
                 </div>
                 <p className="constructor-preview-note">
                   Здесь будет отображаться картинка собранной пиццы.
@@ -272,7 +349,8 @@ export default function HomePage() {
                   <>
                     <div className="ingredients-grid">
                       {ingredients.map((ingredient) => {
-                        const isActive = selectedIngredients.includes(ingredient);
+                        const isActive =
+                          selectedIngredients.includes(ingredient);
                         return (
                           <button
                             key={ingredient}

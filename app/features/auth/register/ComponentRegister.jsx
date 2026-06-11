@@ -4,11 +4,14 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import styles from "./ComponentRegister.module.css";
 import axios from "axios";
+import { saveAuthSession } from "../../../../lib/auth-storage";
+import { useRouter } from "next/navigation";
 
-export const ComponentRegister = () => {
+export const ComponentRegister = ({ onClose }) => {
   const { register, handleSubmit, reset } = useForm();
   const telegramBotUrl = "https://t.me/OwnPizza_auth_bot";
   const [registerMethod, setRegisterMethod] = useState(null);
+  const router = useRouter();
 
   useEffect(() => {
     reset();
@@ -21,8 +24,12 @@ export const ComponentRegister = () => {
       console.log("Данные от сервера:", response.data);
       console.log("Статус:", response.status);
       if (response.status === 200 || response.status === 201) {
+        const { token, user } = response.data;
+        saveAuthSession({ token, user });
         alert("Успешно");
         reset();
+        onClose?.();
+        router.push("/account");
       }
     } catch (error) {
       console.log("Ошибка:", error);

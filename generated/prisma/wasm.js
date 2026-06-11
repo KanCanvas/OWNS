@@ -105,6 +105,7 @@ exports.Prisma.PizzaScalarFieldEnum = {
 
 exports.Prisma.OrderScalarFieldEnum = {
   id: 'id',
+  userId: 'userId',
   pizzaId: 'pizzaId',
   pizzaName: 'pizzaName',
   pizzaSize: 'pizzaSize',
@@ -112,6 +113,10 @@ exports.Prisma.OrderScalarFieldEnum = {
   count: 'count',
   total: 'total',
   paymentMethod: 'paymentMethod',
+  take: 'take',
+  complete: 'complete',
+  idCourier: 'idCourier',
+  ComplDelevery: 'ComplDelevery',
   createdAt: 'createdAt'
 };
 
@@ -125,7 +130,14 @@ exports.Prisma.UserScalarFieldEnum = {
   id: 'id',
   name: 'name',
   phone: 'phone',
-  smsCode: 'smsCode'
+  smsCode: 'smsCode',
+  homeaddress: 'homeaddress',
+  homeentrance: 'homeentrance',
+  homeapartment: 'homeapartment',
+  officeaddress: 'officeaddress',
+  officename: 'officename',
+  officefloor: 'officefloor',
+  officecabinet: 'officecabinet'
 };
 
 exports.Prisma.SortOrder = {
@@ -164,7 +176,7 @@ const config = {
       "value": "prisma-client-js"
     },
     "output": {
-      "value": "C:\\Users\\Канат\\Desktop\\OWNPizza\\OWNS\\generated\\prisma",
+      "value": "/Users/kanat/Desktop/ownpizza/generated/prisma",
       "fromEnvVar": null
     },
     "config": {
@@ -173,16 +185,16 @@ const config = {
     "binaryTargets": [
       {
         "fromEnvVar": null,
-        "value": "windows",
+        "value": "darwin-arm64",
         "native": true
       }
     ],
     "previewFeatures": [],
-    "sourceFilePath": "C:\\Users\\Канат\\Desktop\\OWNPizza\\OWNS\\prisma\\schema.prisma",
+    "sourceFilePath": "/Users/kanat/Desktop/ownpizza/prisma/schema.prisma",
     "isCustomOutput": true
   },
   "relativeEnvPaths": {
-    "rootEnvPath": "../../.env",
+    "rootEnvPath": null,
     "schemaEnvPath": "../../.env"
   },
   "relativePath": "../../prisma",
@@ -192,7 +204,6 @@ const config = {
     "db"
   ],
   "activeProvider": "postgresql",
-  "postinstall": false,
   "inlineDatasources": {
     "db": {
       "url": {
@@ -201,13 +212,13 @@ const config = {
       }
     }
   },
-  "inlineSchema": "generator client {\n  provider = \"prisma-client-js\"\n  output   = \"../generated/prisma\"\n}\n\ndatasource db {\n  provider = \"postgresql\"\n  url      = env(\"DATABASE_URL\")\n}\n\nmodel Pizza {\n  id        Int      @id @default(autoincrement())\n  name      String\n  size      String\n  price     Int\n  rating    Float\n  createdAt DateTime @default(now())\n  updatedAt DateTime @updatedAt\n\n  @@unique([name, size], name: \"name_size\")\n}\n\nenum PaymentMethod {\n  CASH\n  KASPI\n}\n\nmodel Order {\n  id            Int           @id @default(autoincrement())\n  pizzaId       Int?\n  pizzaName     String\n  pizzaSize     String?\n  pizzaPrice    Int?\n  count         Int\n  total         Int\n  paymentMethod PaymentMethod\n  createdAt     DateTime      @default(now())\n}\n\nmodel Tgcode {\n  id        Int      @id @default(autoincrement())\n  code      Int\n  createdAt DateTime @default(now())\n}\n\nmodel User {\n  id      Int    @id @default(autoincrement())\n  name    String\n  phone   String\n  smsCode Int\n}\n",
-  "inlineSchemaHash": "de3d55067c58ab4fdca99b7968e364547b814773463f5aa4034ac211946ed830",
+  "inlineSchema": "generator client {\n  provider = \"prisma-client-js\"\n  output   = \"../generated/prisma\"\n}\n\ndatasource db {\n  provider = \"postgresql\"\n  url      = env(\"DATABASE_URL\")\n}\n\nmodel Pizza {\n  id        Int      @id @default(autoincrement())\n  name      String\n  size      String\n  price     Int\n  rating    Float\n  createdAt DateTime @default(now())\n  updatedAt DateTime @updatedAt\n\n  @@unique([name, size], name: \"name_size\")\n}\n\nenum PaymentMethod {\n  CASH\n  KASPI\n}\n\nmodel Order {\n  id            Int           @id @default(autoincrement())\n  userId        String\n  pizzaId       Int?\n  pizzaName     String\n  pizzaSize     String?\n  pizzaPrice    Int?\n  count         Int\n  total         Int\n  paymentMethod PaymentMethod\n  take          Boolean       @default(false)\n  complete      Boolean       @default(false)\n  idCourier     String?\n  ComplDelevery Boolean       @default(false)\n  createdAt     DateTime      @default(now())\n}\n\nmodel Tgcode {\n  id        Int      @id @default(autoincrement())\n  code      Int\n  createdAt DateTime @default(now())\n}\n\nmodel User {\n  id            Int     @id @default(autoincrement())\n  name          String\n  phone         String\n  smsCode       Int\n  homeaddress   String?\n  homeentrance  String?\n  homeapartment String?\n  officeaddress String?\n  officename    String?\n  officefloor   String?\n  officecabinet String?\n}\n",
+  "inlineSchemaHash": "f5103db0711e12665d54fbd74cd39febd0bfd271f5989db08d0914855c0c265b",
   "copyEngine": true
 }
 config.dirname = '/'
 
-config.runtimeDataModel = JSON.parse("{\"models\":{\"Pizza\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"name\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"size\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"price\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"rating\",\"kind\":\"scalar\",\"type\":\"Float\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"}],\"dbName\":null},\"Order\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"pizzaId\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"pizzaName\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"pizzaSize\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"pizzaPrice\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"count\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"total\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"paymentMethod\",\"kind\":\"enum\",\"type\":\"PaymentMethod\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"}],\"dbName\":null},\"Tgcode\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"code\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"}],\"dbName\":null},\"User\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"name\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"phone\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"smsCode\",\"kind\":\"scalar\",\"type\":\"Int\"}],\"dbName\":null}},\"enums\":{},\"types\":{}}")
+config.runtimeDataModel = JSON.parse("{\"models\":{\"Pizza\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"name\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"size\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"price\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"rating\",\"kind\":\"scalar\",\"type\":\"Float\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"}],\"dbName\":null},\"Order\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"userId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"pizzaId\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"pizzaName\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"pizzaSize\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"pizzaPrice\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"count\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"total\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"paymentMethod\",\"kind\":\"enum\",\"type\":\"PaymentMethod\"},{\"name\":\"take\",\"kind\":\"scalar\",\"type\":\"Boolean\"},{\"name\":\"complete\",\"kind\":\"scalar\",\"type\":\"Boolean\"},{\"name\":\"idCourier\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"ComplDelevery\",\"kind\":\"scalar\",\"type\":\"Boolean\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"}],\"dbName\":null},\"Tgcode\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"code\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"}],\"dbName\":null},\"User\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"name\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"phone\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"smsCode\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"homeaddress\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"homeentrance\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"homeapartment\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"officeaddress\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"officename\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"officefloor\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"officecabinet\",\"kind\":\"scalar\",\"type\":\"String\"}],\"dbName\":null}},\"enums\":{},\"types\":{}}")
 defineDmmfProperty(exports.Prisma, config.runtimeDataModel)
 config.engineWasm = {
   getRuntime: async () => require('./query_engine_bg.js'),

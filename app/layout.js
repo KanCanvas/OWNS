@@ -1,5 +1,6 @@
 import "./globals.css";
 import Header from "../components/Header";
+import CartProvider from "./context/CartProvider";
 
 export const metadata = {
   title: "OWNpizza",
@@ -11,8 +12,10 @@ export default function RootLayout({ children }) {
     <html lang="ru">
       <body>
         <div className="container app-shell">
-          <Header />
-          <main className="page">{children}</main>
+          <CartProvider>
+            <Header />
+            <main className="page">{children}</main>
+          </CartProvider>
         </div>
       </body>
     </html>
