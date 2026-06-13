@@ -4,6 +4,7 @@ import styles from "./ModalLogin.module.css";
 import { useForm } from "react-hook-form";
 import { ComponentRegister } from "../register/ComponentRegister";
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { saveAuthSession } from "../../../../lib/auth-storage";
 import { modelLogin } from "./modelLogin";
@@ -16,10 +17,15 @@ export default function ModalLogin({ isOpen, onClose }) {
   const telegramBotUrl = "https://t.me/OwnPizza_auth_bot";
   const router = useRouter();
 
+  const [mounted, setMounted] = useState(false);
   const [stateAuth, setStateAuth] = useState(false);
   const [loginMethod, setLoginMethod] = useState(null);
   const [adminLoginStep, setAdminLoginStep] = useState(false);
   const [courierLoginStep, setCourierLoginStep] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     reset();
@@ -27,7 +33,24 @@ export default function ModalLogin({ isOpen, onClose }) {
     setCourierLoginStep(false)
   }, [loginMethod, reset]);
 
-  if (!isOpen) return null;
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const onKey = (event) => {
+      if (event.key === "Escape") onClose?.();
+    };
+
+    document.addEventListener("keydown", onKey);
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [isOpen, onClose]);
+
+  if (!isOpen || !mounted) return null;
 
   const handleFormSubmit = async (data) => {
     if (
@@ -105,8 +128,8 @@ export default function ModalLogin({ isOpen, onClose }) {
     return await modelLogin(data, { reset, onClose, router });
   };
 
-  return (
-    <div>
+  return createPortal(
+    <>
       <div
         className={styles.backdrop}
         aria-hidden
@@ -319,7 +342,7 @@ export default function ModalLogin({ isOpen, onClose }) {
                     <button
                       type="button"
                       className={styles.linkBtn}
-                      onClick={() => setAdminLoginStep(false)}
+                      onClick={() => setCourierLoginStep(false)}
                     >
                       Назад
                     </button>
@@ -383,6 +406,7 @@ export default function ModalLogin({ isOpen, onClose }) {
           </form>
         )}
       </div>
-    </div>
+    </>,
+    document.body
   );
 }

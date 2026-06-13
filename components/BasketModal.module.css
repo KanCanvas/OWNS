@@ -18,12 +18,25 @@
   }
 }
 
+@keyframes modalSheetIn {
+  from {
+    opacity: 0.92;
+    transform: translateY(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .backdrop {
   position: fixed;
   inset: 0;
   z-index: 2000;
   background: rgba(31, 31, 31, 0.45);
   animation: backdropIn 0.2s ease-out;
+  touch-action: none;
+  overscroll-behavior: none;
 }
 
 .dialog {
@@ -510,11 +523,14 @@
     top: auto;
     bottom: 0;
     translate: none;
+    transform: translateY(0);
     width: 100%;
     min-height: auto;
     max-height: min(92dvh, calc(100dvh - env(safe-area-inset-top)));
     border-radius: 20px 20px 0 0;
     padding-bottom: env(safe-area-inset-bottom);
+    animation: modalSheetIn 0.34s cubic-bezier(0.32, 0.72, 0, 1);
+    will-change: transform, opacity;
   }
 
   .header {
