@@ -70,7 +70,7 @@ export function ModalUserModals({ isOpen, onClose }) {
       onClick={onClose}
     >
       <div
-        className={`app-modal ${styles.dialog}`}
+        className={`app-modal app-modal--body-scroll ${styles.dialog}`}
         role="dialog"
         aria-modal="true"
         aria-labelledby="user-orders-modal-title"

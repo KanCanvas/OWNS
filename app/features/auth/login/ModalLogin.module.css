@@ -1,5 +1,6 @@
 
 .dialog {
+  position: relative;
   display: flex;
   flex-direction: column;
   background: #fff;
@@ -49,7 +50,8 @@
 
 .head {
   position: relative;
-  padding: 28px 24px 18px;
+  flex-shrink: 0;
+  padding: 28px 52px 18px 24px;
   text-align: center;
   background:
     radial-gradient(120% 130% at 50% 0%, #fff5ec 0%, transparent 65%),
@@ -515,7 +517,7 @@
 
 @media (max-width: 740px) {
   .head {
-    padding: 24px 18px 16px;
+    padding: 24px 48px 16px 18px;
   }
 
   .title {
@@ -540,5 +542,7 @@
   .closeBtn {
     width: 40px;
     height: 40px;
+    top: 10px;
+    right: 10px;
   }
 }
