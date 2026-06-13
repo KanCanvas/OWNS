@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import styles from "./modalUserModals.module.css";
 
 const paymentLabels = {
@@ -34,6 +35,11 @@ function getOrderStatus(order) {
 
 export function ModalUserModals({ isOpen, onClose }) {
   const [orders, setOrders] = useState([]);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -55,20 +61,20 @@ export function ModalUserModals({ isOpen, onClose }) {
     })();
   }, [isOpen]);
 
-  if (!isOpen) return null;
+  if (!isOpen || !mounted) return null;
 
-  return (
-    <div className={styles.root} role="presentation">
+  return createPortal(
+    <div
+      className="app-modal-backdrop"
+      role="presentation"
+      onClick={onClose}
+    >
       <div
-        className={styles.backdrop}
-        aria-hidden
-        onClick={onClose}
-      />
-      <div
-        className={styles.dialog}
+        className={`app-modal ${styles.dialog}`}
         role="dialog"
         aria-modal="true"
         aria-labelledby="user-orders-modal-title"
+        onClick={(event) => event.stopPropagation()}
       >
         <button
           type="button"
@@ -153,7 +159,8 @@ export function ModalUserModals({ isOpen, onClose }) {
           )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 

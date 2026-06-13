@@ -352,6 +352,24 @@ body {
   box-shadow: 0 24px 46px rgba(58, 28, 11, 0.28);
 }
 
+.app-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(23, 12, 7, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  padding: 18px;
+}
+
+.app-modal {
+  width: min(480px, 100%);
+  max-height: 85vh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
 .constructor-modal-head {
   display: flex;
   justify-content: space-between;
@@ -808,6 +826,17 @@ body {
     max-height: 92dvh;
     border-radius: 20px 20px 0 0;
     padding: 18px 16px calc(20px + env(safe-area-inset-bottom));
+  }
+
+  .app-modal-backdrop {
+    padding: 0;
+    align-items: flex-end;
+  }
+
+  .app-modal {
+    width: 100%;
+    max-height: 92dvh;
+    border-radius: 20px 20px 0 0;
   }
 
   .constructor-modal-head h2 {

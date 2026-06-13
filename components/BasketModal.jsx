@@ -258,17 +258,17 @@ export default function BasketModal({ onRequireLogin }) {
   }, [])
 
   const modal = open && (
-    <>
+    <div
+      className="app-modal-backdrop"
+      role="presentation"
+      onClick={() => setOpen(false)}
+    >
       <div
-        className={styles.backdrop}
-        aria-hidden
-        onClick={() => setOpen(false)}
-      />
-      <div
-        className={styles.dialog}
+        className={`app-modal ${styles.dialog}`}
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
+        onClick={(event) => event.stopPropagation()}
       >
         <div className={styles.header}>
           <div className={styles.headline}>
@@ -528,7 +528,7 @@ export default function BasketModal({ onRequireLogin }) {
           </button>
         </div>
       </div>
-    </>
+    </div>
   );
 
   return (

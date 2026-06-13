@@ -1,58 +1,8 @@
-@keyframes userOrdersBackdropIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes userOrdersDialogIn {
-  from {
-    opacity: 0;
-    transform: translateY(14px) scale(0.98);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-.root {
-  position: fixed;
-  inset: 0;
-  z-index: 2000;
-  pointer-events: none;
-}
-
-/* Затемнение */
-.backdrop {
-  position: fixed;
-  inset: 0;
-  z-index: 2000;
-  background: rgba(31, 18, 12, 0.5);
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
-  animation: userOrdersBackdropIn 0.2s ease-out;
-  pointer-events: auto;
-}
-
-/* Белая карточка по центру */
 .dialog {
-  position: fixed;
-  z-index: 2001;
-  left: 50%;
-  top: 50%;
-  translate: -50% -50%;
-  pointer-events: auto;
-  position: relative;
-  z-index: 2001;
+  width: min(520px, 100%);
   box-sizing: border-box;
-  width: min(520px, calc(100vw - 24px));
-  max-height: calc(100vh - 32px);
   margin: 0;
   padding: 0;
-  overflow-y: auto;
   display: flex;
   flex-direction: column;
   background: #fff;
@@ -62,7 +12,6 @@
     0 24px 70px rgba(160, 80, 40, 0.32),
     0 0 0 1px rgba(255, 255, 255, 0.85) inset;
   font-family: inherit;
-  animation: userOrdersDialogIn 0.24s ease-out;
 }
 
 /* Шапка модалки, если позже разобьёшь разметку */
