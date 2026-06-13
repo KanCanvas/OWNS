@@ -1,36 +1,23 @@
 "use client";
 
 import { createPortal } from "react-dom";
-import { useCallback, useEffect, useId, useState } from "react";
+import { useCallback, useContext, useEffect, useId, useState } from "react";
 import styles from "./BasketModal.module.css";
 import { getStoredUser } from "../lib/auth-storage";
+import {
+  CART_CHANGE_EVENT,
+  getCartSummary,
+  notifyCartChange,
+  readCartItems,
+} from "../lib/cart-storage";
 import { CartContext } from "@/app/context/CartProvider";
-import { useContext } from "react";
-import modelUserAddress from "../app/features/userData/userAddress/modelUserAddres"
+import modelUserAddress from "../app/features/userData/userAddress/modelUserAddres";
 import {
   PROMO_COLA_GIFT,
   PROMO_MIN_PIZZAS,
   buildOrderItemsWithGift,
   qualifiesForColaGift,
 } from "../lib/promo";
-
-
-function getWithExpiry(key) {
-  const itemStr = localStorage.getItem(key);
-
-  if (!itemStr) return null;
-
-  const item = JSON.parse(itemStr);
-  const now = new Date();
-
-  // если время истекло
-  if (now.getTime() > item.expiry) {
-    localStorage.removeItem(key);
-    return null;
-  }
-
-  return item.value;
-}
 
 function pizzaWord(n) {
   const abs = Math.abs(n) % 100;
@@ -65,6 +52,8 @@ export default function BasketModal({ onRequireLogin }) {
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [cartItems, setCartItems] = useState([]);
+  const [cartCount, setCartCount] = useState(0);
+  const [cartTotal, setCartTotal] = useState(0);
   const [isOrdering, setIsOrdering] = useState(false);
   const [orderError, setOrderError] = useState("");
   const [orderSuccess, setOrderSuccess] = useState("");
@@ -99,59 +88,71 @@ export default function BasketModal({ onRequireLogin }) {
   useEffect(() => setMounted(true), []);
 
   const syncCartFromStorage = useCallback(() => {
-    if (typeof window === "undefined") return;
-    const rawCart = getWithExpiry("cartItems");
-    if (!rawCart || typeof rawCart !== "object" || Object.keys(rawCart).length === 0) {
-      const rawCartLocal = JSON.parse(localStorage.getItem("cartElements") || "{}");
-      const items = Object.values(rawCartLocal)
-      .map((item) => {
-        const count = Number(item?.count ?? 0);
-        if (!Number.isFinite(count) || count <= 0) return null;
-        return {
-          ...item,
-          count
-        };
-      })
-      .filter(Boolean);
-
-      setCartItems(items);
-      return;
-    }
-    const items = Object.values(rawCart)
-      .map((item) => {
-        const count = Number(item?.count ?? 0);
-        if (!Number.isFinite(count) || count <= 0) return null;
-        return {
-          ...item,
-          count
-        };
-      })
-      .filter(Boolean);
-
+    const items = readCartItems();
     setCartItems(items);
+    return items;
   }, []);
+
+  const refreshCartSummary = useCallback(() => {
+    const { count, total } = getCartSummary();
+    setCartCount(count);
+    setCartTotal(total);
+  }, []);
+
+  useEffect(() => {
+    refreshCartSummary();
+
+    const onCartChange = () => refreshCartSummary();
+    window.addEventListener(CART_CHANGE_EVENT, onCartChange);
+    window.addEventListener("storage", onCartChange);
+
+    return () => {
+      window.removeEventListener(CART_CHANGE_EVENT, onCartChange);
+      window.removeEventListener("storage", onCartChange);
+    };
+  }, [refreshCartSummary]);
 
   useEffect(() => {
     if (!open) return;
     syncCartFromStorage();
   }, [open, syncCartFromStorage]);
 
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+
+    if (cartCount > 0 && !open) {
+      document.body.classList.add("has-floating-cart");
+    } else {
+      document.body.classList.remove("has-floating-cart");
+    }
+
+    return () => {
+      document.body.classList.remove("has-floating-cart");
+    };
+  }, [cartCount, open]);
+
   const openBasket = () => {
     syncCartFromStorage();
+    refreshCartSummary();
     setOrderError("");
     setOrderSuccess("");
     setOpen(true);
   };
 
-  const cartCount = cartItems.reduce((sum, item) => sum + item.count, 0);
-  const cartTotal = cartItems.reduce(
+  useEffect(() => {
+    if (open) return;
+    refreshCartSummary();
+  }, [open, refreshCartSummary]);
+
+  const cartCountInModal = cartItems.reduce((sum, item) => sum + item.count, 0);
+  const cartTotalInModal = cartItems.reduce(
     (sum, item) => sum + (typeof item.price === "number" ? item.price * item.count : 0),
     0
   );
   const hasColaGift = qualifiesForColaGift(cartItems);
 
   const handleOrder = async () => {
-    if (cartItems.length === 0 || cartCount <= 0) {
+    if (cartItems.length === 0 || cartCountInModal <= 0) {
       setOrderError("Корзина пуста. Добавьте пиццу перед заказом.");
       setOrderSuccess("");
       return;
@@ -187,8 +188,8 @@ export default function BasketModal({ onRequireLogin }) {
         },
         body: JSON.stringify({
           pizza: orderItems,
-          count: cartCount,
-          total: cartTotal,
+          count: cartCountInModal,
+          total: cartTotalInModal,
           paymentMethod,
           createdAt: new Date().toISOString(),
           address: deliveryData.homeAddress,
@@ -218,6 +219,7 @@ export default function BasketModal({ onRequireLogin }) {
             ? "Оплата через Kaspi при получении."
             : "Оплата наличными при получении.")
       );
+      notifyCartChange();
     } catch (error) {
       const message =
         error instanceof Error && error.message
@@ -275,12 +277,12 @@ export default function BasketModal({ onRequireLogin }) {
             <h2 id={titleId} className={styles.title}>
               Корзина
             </h2>
-            {cartCount > 0 ? (
+            {cartCountInModal > 0 ? (
               <span
                 className={styles.countBadge}
-                aria-label={`${cartCount} ${pizzaWord(cartCount)}`}
+                aria-label={`${cartCountInModal} ${pizzaWord(cartCountInModal)}`}
               >
-                {cartCount}
+                {cartCountInModal}
               </span>
             ) : null}
           </div>
@@ -294,7 +296,7 @@ export default function BasketModal({ onRequireLogin }) {
           </button>
         </div>
         <div className={styles.body}>
-          {cartCount <= 0 ? (
+          {cartCountInModal <= 0 ? (
             <p className={styles.empty}>
               Пока пусто — добавьте пиццу из меню.
             </p>
@@ -357,7 +359,7 @@ export default function BasketModal({ onRequireLogin }) {
                     </div>
                   </div>
                 </article>
-              ) : cartCount === 1 ? (
+              ) : cartCountInModal === 1 ? (
                 <p className={styles.promoHint}>
                   Добавьте ещё одну пиццу — получите {PROMO_COLA_GIFT.name} бесплатно!
                 </p>
@@ -365,13 +367,13 @@ export default function BasketModal({ onRequireLogin }) {
               <article className={styles.card}>
                 <div className={styles.total}>
                   <span>Итого</span>
-                  <strong>{cartTotal.toLocaleString("ru-RU")} ₸</strong>
+                  <strong>{cartTotalInModal.toLocaleString("ru-RU")} ₸</strong>
                 </div>
               </article>
             </>
           )}
 
-          {cartCount > 0 && cartItems.length > 0 ? (
+          {cartCountInModal > 0 && cartItems.length > 0 ? (
             <section className={styles.delivery} aria-label="Адрес доставки">
               <h3 className={styles.deliveryTitle}>Адрес доставки</h3>
 
@@ -479,7 +481,7 @@ export default function BasketModal({ onRequireLogin }) {
             </section>
           ) : null}
 
-          {cartCount > 0 && cartItems.length > 0 ? (
+          {cartCountInModal > 0 && cartItems.length > 0 ? (
             <div
               className={styles.payment}
               role="radiogroup"
@@ -522,7 +524,7 @@ export default function BasketModal({ onRequireLogin }) {
             type="button"
             className={styles.orderBtn}
             onClick={() => handleOrder()}
-            disabled={isOrdering || cartCount <= 0 || cartItems.length === 0}
+            disabled={isOrdering || cartCountInModal <= 0 || cartItems.length === 0}
           >
             {isOrdering ? "Отправляем..." : "Заказать"}
           </button>
@@ -543,6 +545,27 @@ export default function BasketModal({ onRequireLogin }) {
       >
         🛒
       </button>
+      {mounted && cartCount > 0 && !open
+        ? createPortal(
+            <button
+              type="button"
+              className={styles.floatingBar}
+              onClick={openBasket}
+              aria-label={`Корзина: ${cartCount} ${pizzaWord(cartCount)}, ${cartTotal.toLocaleString("ru-RU")} тенге`}
+            >
+              <span className={styles.floatingMain}>
+                <span className={styles.floatingCount} aria-hidden>
+                  {cartCount}
+                </span>
+                <span className={styles.floatingLabel}>Корзина</span>
+              </span>
+              <span className={styles.floatingTotal}>
+                {cartTotal.toLocaleString("ru-RU")} ₸
+              </span>
+            </button>,
+            document.body
+          )
+        : null}
       {mounted && modal ? createPortal(modal, document.body) : null}
     </>
   );

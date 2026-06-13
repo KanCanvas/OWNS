@@ -6,6 +6,7 @@ import { CartContext } from "./context/CartProvider";
 import { useSearch } from "./context/SearchProvider";
 import styles from "./page.module.css";
 import { formatPrice } from "../lib/formatPrice";
+import { notifyCartChange } from "../lib/cart-storage";
 
 function setWithExpiry(key, value, ttl) {
   if (typeof window === "undefined") return;
@@ -195,6 +196,8 @@ export default function HomePage() {
         setCartItems({});
       }, 500000);
     }
+
+    notifyCartChange();
   }, [cartItems]);
 
   useEffect(() => {
@@ -204,6 +207,7 @@ export default function HomePage() {
       setCartItems({});
       localStorage.removeItem("cartElements");
       localStorage.removeItem("cartItems");
+      notifyCartChange();
     }
   }, [cartItem]);
 

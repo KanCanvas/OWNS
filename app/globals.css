@@ -210,6 +210,10 @@ body {
   min-height: calc(100vh - 86px);
 }
 
+body.has-floating-cart .page {
+  padding-bottom: calc(84px + env(safe-area-inset-bottom));
+}
+
 .home-mock {
   padding: 30px 34px 24px;
 }
