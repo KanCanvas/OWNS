@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "cross-env NODE_ENV=development nodemon server.js",
     "dev:full": "npm run db:up && npm run db:push && npm run dev",
-    "build": "next build",
+    "build": "rm -rf .next && next build",
     "start": "node server.js",
     "db:up": "docker compose up -d",
     "db:down": "docker compose down",
