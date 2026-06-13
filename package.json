@@ -7,6 +7,7 @@
     "dev:full": "npm run db:up && npm run db:push && npm run dev",
     "build": "rm -rf .next && next build",
     "start": "node server.js",
+    "bot": "node bot.js",
     "db:up": "docker compose up -d",
     "db:down": "docker compose down",
     "db:logs": "docker compose logs -f postgres",

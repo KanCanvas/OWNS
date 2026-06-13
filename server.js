@@ -8,6 +8,7 @@ const express = require("express");
 const next = require("next");
 const prisma = require("./lib/prisma");
 const { buildOrderItemsWithGift } = require("./lib/promo");
+const { notifyAdminAboutOrder } = require("./lib/telegram-notify");
 const { compare } = require("bcryptjs");
 
 const port = Number(process.env.PORT) || 3000;
@@ -105,14 +106,20 @@ app
 
         const user = await prisma.user.findUnique({
           where: {
-            id: userId, // ВАЖНО: именно id, не userId
+            id: userId,
           },
           select: {
+            name: true,
+            phone: true,
             homeaddress: true,
             homeentrance: true,
             homeapartment: true,
           },
         });
+
+        if (!user) {
+          return res.status(401).json({ ok: false, error: "Пользователь не найден." });
+        }
 
         if(address !== user.homeaddress || entrance !== user.homeentrance || apartment !== user.homeapartment){
           if(address !== "" && entrance !== "" && apartment !== ""){
@@ -196,7 +203,17 @@ app
             error: "Корзина пуста или данные некорректны."
           });
         }
-          
+
+        notifyAdminAboutOrder({
+          user,
+          orders,
+          paymentMethod: normalizedMethod,
+          address,
+          entrance,
+          apartment,
+        }).catch((error) => {
+          console.error("Telegram order notification failed:", error);
+        });
 
         return res.status(201).json({ ok: true, orders });
       } catch (error) {
