@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { saveAuthSession } from "../../../../lib/auth-storage";
+import { lockBodyScroll } from "../../../../lib/body-scroll-lock";
 import { modelLogin } from "./modelLogin";
 import { modelAdminLogin } from "./AdminLogin/modelAdminLogin";
 import { modelCourierLogin } from "./CourierLogin/modelCourierLogin"
@@ -41,12 +42,11 @@ export default function ModalLogin({ isOpen, onClose }) {
     };
 
     document.addEventListener("keydown", onKey);
-    const prevOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+    const unlockScroll = lockBodyScroll();
 
     return () => {
       document.removeEventListener("keydown", onKey);
-      document.body.style.overflow = prevOverflow;
+      unlockScroll();
     };
   }, [isOpen, onClose]);
 

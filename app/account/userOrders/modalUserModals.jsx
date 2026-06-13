@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import styles from "./modalUserModals.module.css";
+import { lockBodyScroll } from "../../../lib/body-scroll-lock";
 
 const paymentLabels = {
   CASH: "Наличные",
@@ -49,12 +50,11 @@ export function ModalUserModals({ isOpen, onClose }) {
     };
 
     document.addEventListener("keydown", onKey);
-    const prevOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+    const unlockScroll = lockBodyScroll();
 
     return () => {
       document.removeEventListener("keydown", onKey);
-      document.body.style.overflow = prevOverflow;
+      unlockScroll();
     };
   }, [isOpen, onClose]);
 
@@ -81,7 +81,7 @@ export function ModalUserModals({ isOpen, onClose }) {
   if (!isOpen || !mounted) return null;
 
   return createPortal(
-    <div className={styles.root} role="presentation">
+    <div className={styles.overlay} role="presentation">
       <div
         className={styles.backdrop}
         aria-hidden

@@ -7,6 +7,7 @@ import { getStoredUser } from "../lib/auth-storage";
 import { CartContext } from "@/app/context/CartProvider";
 import { useContext } from "react";
 import modelUserAddress from "../app/features/userData/userAddress/modelUserAddres"
+import { lockBodyScroll } from "../lib/body-scroll-lock";
 import {
   PROMO_COLA_GIFT,
   PROMO_MIN_PIZZAS,
@@ -235,11 +236,10 @@ export default function BasketModal({ onRequireLogin }) {
       if (e.key === "Escape") setOpen(false);
     };
     document.addEventListener("keydown", onKey);
-    const prevOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+    const unlockScroll = lockBodyScroll();
     return () => {
       document.removeEventListener("keydown", onKey);
-      document.body.style.overflow = prevOverflow;
+      unlockScroll();
     };
   }, [open]);
 
@@ -258,7 +258,7 @@ export default function BasketModal({ onRequireLogin }) {
   }, [])
 
   const modal = open && (
-    <>
+    <div className={styles.overlay} role="presentation">
       <div
         className={styles.backdrop}
         aria-hidden
@@ -528,7 +528,7 @@ export default function BasketModal({ onRequireLogin }) {
           </button>
         </div>
       </div>
-    </>
+    </div>
   );
 
   return (
