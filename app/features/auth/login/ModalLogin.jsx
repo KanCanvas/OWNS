@@ -129,7 +129,7 @@ export default function ModalLogin({ isOpen, onClose }) {
   };
 
   return createPortal(
-    <>
+    <div className={styles.overlay} role="presentation">
       <div
         className={styles.backdrop}
         aria-hidden
@@ -406,7 +406,7 @@ export default function ModalLogin({ isOpen, onClose }) {
           </form>
         )}
       </div>
-    </>,
+    </div>,
     document.body
   );
 }

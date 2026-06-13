@@ -7,9 +7,6 @@ import { useSearch } from "./context/SearchProvider";
 import styles from "./page.module.css";
 import { formatPrice } from "../lib/formatPrice";
 
-const categories = ["Все", "Мясные", "Острые", "Вегетарианские", "С курицей"];
-
-
 function setWithExpiry(key, value, ttl) {
   if (typeof window === "undefined") return;
   const now = new Date();
@@ -215,15 +212,6 @@ export default function HomePage() {
       <h1 className="home-title">Все пиццы</h1>
 
       <div className="chips">
-        {categories.map((category, index) => (
-          <button
-            key={category}
-            type="button"
-            className={`chip ${index === 0 ? "active" : ""}`}
-          >
-            {category}
-          </button>
-        ))}
         <button
           className="tiny-action tiny-action-accent chips-constructor-btn"
           type="button"
