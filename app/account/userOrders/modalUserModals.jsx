@@ -1,9 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { createPortal } from "react-dom";
 import styles from "./modalUserModals.module.css";
-import { lockBodyScroll } from "../../../lib/body-scroll-lock";
 
 const paymentLabels = {
   CASH: "Наличные",
@@ -36,27 +34,6 @@ function getOrderStatus(order) {
 
 export function ModalUserModals({ isOpen, onClose }) {
   const [orders, setOrders] = useState([]);
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  useEffect(() => {
-    if (!isOpen) return;
-
-    const onKey = (event) => {
-      if (event.key === "Escape") onClose?.();
-    };
-
-    document.addEventListener("keydown", onKey);
-    const unlockScroll = lockBodyScroll();
-
-    return () => {
-      document.removeEventListener("keydown", onKey);
-      unlockScroll();
-    };
-  }, [isOpen, onClose]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -78,10 +55,10 @@ export function ModalUserModals({ isOpen, onClose }) {
     })();
   }, [isOpen]);
 
-  if (!isOpen || !mounted) return null;
+  if (!isOpen) return null;
 
-  return createPortal(
-    <div className={styles.overlay} role="presentation">
+  return (
+    <div className={styles.root} role="presentation">
       <div
         className={styles.backdrop}
         aria-hidden
@@ -176,8 +153,7 @@ export function ModalUserModals({ isOpen, onClose }) {
           )}
         </div>
       </div>
-    </div>,
-    document.body
+    </div>
   );
 }
 

@@ -9,7 +9,6 @@
 
 html {
   -webkit-text-size-adjust: 100%;
-  height: 100%;
 }
 
 body {
@@ -18,8 +17,6 @@ body {
   background: radial-gradient(circle at top, #ffd6bd 0%, #f7bf9e 100%);
   color: #1f1f1f;
   padding: 10px;
-  min-height: 100%;
-  min-height: 100dvh;
 }
 
 .container {
@@ -342,8 +339,6 @@ body {
   justify-content: center;
   z-index: 999;
   padding: 18px;
-  touch-action: none;
-  overscroll-behavior: none;
 }
 
 .constructor-modal {
@@ -355,17 +350,6 @@ body {
   border: 1px solid #ffd4bf;
   padding: 24px;
   box-shadow: 0 24px 46px rgba(58, 28, 11, 0.28);
-}
-
-@keyframes constructorSheetIn {
-  from {
-    opacity: 0.92;
-    transform: translateY(100%);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
 }
 
 .constructor-modal-head {
@@ -817,17 +801,13 @@ body {
   .constructor-modal-backdrop {
     padding: 0;
     align-items: flex-end;
-    touch-action: none;
-    overscroll-behavior: none;
   }
 
   .constructor-modal {
     width: 100%;
-    max-width: 100%;
     max-height: 92dvh;
     border-radius: 20px 20px 0 0;
     padding: 18px 16px calc(20px + env(safe-area-inset-bottom));
-    animation: constructorSheetIn 0.34s cubic-bezier(0.32, 0.72, 0, 1) forwards;
   }
 
   .constructor-modal-head h2 {
