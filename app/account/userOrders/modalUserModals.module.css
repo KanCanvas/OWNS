@@ -2,11 +2,13 @@
   position: relative;
   width: min(520px, 100%);
   max-height: 85vh;
+  height: 100%;
   box-sizing: border-box;
   margin: 0;
   padding: 0;
   display: flex;
   flex-direction: column;
+  min-height: 0;
   overflow: hidden;
   background: #fff;
   border: 1px solid #f0cfa8;
@@ -18,15 +20,22 @@
 }
 
 .head {
-  position: relative;
   flex-shrink: 0;
-  padding: 22px 52px 16px 20px;
-  text-align: center;
+  padding: 18px 18px 14px;
+  text-align: left;
   background:
     radial-gradient(120% 130% at 50% 0%, #fff5ec 0%, transparent 65%),
     linear-gradient(180deg, #fff 0%, #fffaf5 100%);
   border-bottom: 1px solid #f6ebe0;
   border-radius: 20px 20px 0 0;
+}
+
+.headRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 6px;
 }
 
 .title {
@@ -38,8 +47,8 @@
 }
 
 .subtitle {
-  margin: 6px auto 0;
-  max-width: 360px;
+  margin: 0;
+  max-width: none;
   font-size: 0.84rem;
   font-weight: 400;
   color: #8a7e76;
@@ -47,12 +56,14 @@
 }
 
 .body {
-  flex: 1;
+  flex: 1 1 auto;
   min-height: 0;
   overflow-y: auto;
+  overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
-  padding: 0 20px 24px;
+  touch-action: pan-y;
+  padding: 14px 18px 24px;
   text-align: left;
   font-size: 0.9rem;
   font-weight: 400;
@@ -240,17 +251,15 @@
 }
 
 .closeBtn {
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  width: 36px;
-  height: 36px;
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   border: none;
   border-radius: 10px;
-  background: rgba(244, 240, 236, 0.9);
+  background: rgba(244, 240, 236, 0.95);
   color: #6d6560;
   font-size: 1.45rem;
   line-height: 1;
@@ -259,7 +268,6 @@
     background 0.15s ease,
     color 0.15s ease,
     transform 0.2s ease;
-  z-index: 2;
 }
 
 .closeBtn:hover {
@@ -275,21 +283,20 @@
 
 @media (max-width: 740px) {
   .dialog {
-    max-height: 92dvh;
+    max-height: none;
+    height: 100%;
   }
 
   .head {
-    padding: 20px 48px 14px 16px;
+    padding: 16px 16px 12px;
+    padding-top: calc(16px + env(safe-area-inset-top));
   }
 
   .body {
-    padding: 0 16px calc(20px + env(safe-area-inset-bottom));
+    padding: 12px 16px calc(20px + env(safe-area-inset-bottom));
   }
 
-  .closeBtn {
-    width: 40px;
-    height: 40px;
-    top: 10px;
-    right: 10px;
+  .title {
+    font-size: 1.25rem;
   }
 }

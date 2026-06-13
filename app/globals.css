@@ -376,6 +376,13 @@ body {
   flex-direction: column;
 }
 
+.app-modal.app-modal--orders {
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
 .constructor-modal-head {
   display: flex;
   justify-content: space-between;
@@ -843,6 +850,11 @@ body {
     width: 100%;
     max-height: 92dvh;
     border-radius: 20px 20px 0 0;
+  }
+
+  .app-modal.app-modal--orders {
+    height: min(92dvh, calc(100dvh - env(safe-area-inset-top)));
+    max-height: min(92dvh, calc(100dvh - env(safe-area-inset-top)));
   }
 
   .constructor-modal-head h2 {

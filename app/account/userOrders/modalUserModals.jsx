@@ -70,24 +70,26 @@ export function ModalUserModals({ isOpen, onClose }) {
       onClick={onClose}
     >
       <div
-        className={`app-modal app-modal--body-scroll ${styles.dialog}`}
+        className={`app-modal app-modal--orders ${styles.dialog}`}
         role="dialog"
         aria-modal="true"
         aria-labelledby="user-orders-modal-title"
         onClick={(event) => event.stopPropagation()}
       >
-        <button
-          type="button"
-          className={styles.closeBtn}
-          onClick={onClose}
-          aria-label="Закрыть"
-        >
-          ×
-        </button>
         <div className={styles.head}>
-          <h2 id="user-orders-modal-title" className={styles.title}>
-            Заказы
-          </h2>
+          <div className={styles.headRow}>
+            <h2 id="user-orders-modal-title" className={styles.title}>
+              Заказы
+            </h2>
+            <button
+              type="button"
+              className={styles.closeBtn}
+              onClick={onClose}
+              aria-label="Закрыть"
+            >
+              ×
+            </button>
+          </div>
           <p className={styles.subtitle}>
             {orders.length > 0
               ? `Всего заказов: ${orders.length}`
