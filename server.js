@@ -9,7 +9,7 @@ const next = require("next");
 const prisma = require("./lib/prisma");
 const { buildOrderItemsWithGift } = require("./lib/promo");
 const { notifyAdminAboutOrder } = require("./lib/telegram-notify");
-const { normalizePhone, phoneLookupVariants, phonesMatch } = require("./lib/phone");
+const { normalizePhone, phoneLookupVariants, phonesMatch, isPrivilegedPhone } = require("./lib/phone");
 const {
   findTelegramCode,
   assertTelegramMatchesUser,
@@ -319,6 +319,13 @@ app
           });
         }
 
+        if (isPrivilegedPhone(normalizedPhone)) {
+          return res.status(400).json({
+            ok: false,
+            error: "Этот номер зарезервирован. Вход только по паролю.",
+          });
+        }
+
         const codeResult = await findTelegramCode(prisma, numericSmsCode);
         if (!codeResult.ok) {
           return res.status(400).json({
@@ -388,6 +395,14 @@ app
             error: "Код из SMS должен быть числом."
           });
         }
+
+        if (isPrivilegedPhone(normalizedPhone)) {
+          return res.status(403).json({
+            ok: false,
+            error: "Для номера администратора и курьера вход только по паролю.",
+          });
+        }
+
         const codeResult = await findTelegramCode(prisma, numericSmsCode);
         if (!codeResult.ok) {
           return res.status(400).json({
@@ -427,20 +442,17 @@ app
 
         const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES_IN });
 
-        const adminPhone =
-          process.env.NEXT_PUBLIC_ADMIN_PHONE || "87009581010";
-        const courierPhone =
-          process.env.NEXT_PUBLIC_COURIER_PHONE || "87009582985";
-
-        if (phonesMatch(normalizedPhone, adminPhone)) {
-          return res.status(200).json({ ok: true, token, user: { id: user.id, name: user.name, phone: user.phone, isAdmin: true } });
-        }    
-        
-        if (phonesMatch(normalizedPhone, courierPhone)) {
-          return res.status(200).json({ok: true, token, user: {id: user.id, name: user.name, phone: user.phone, isCourier: true}})
-        }
-
-        return res.status(200).json({ ok: true, token, user: { id: user.id, name: user.name, phone: user.phone, isAdmin: false, isCourier: false } });
+        return res.status(200).json({
+          ok: true,
+          token,
+          user: {
+            id: user.id,
+            name: user.name,
+            phone: user.phone,
+            isAdmin: false,
+            isCourier: false,
+          },
+        });
       } catch (error) {
         console.error("Failed to login:", error);
         return res.status(500).json({
@@ -469,11 +481,7 @@ app
           });
         }
 
-        const user = await prisma.user.findFirst({
-          where: {
-            phone: normalizedPhone
-          }
-        });
+        const user = await findUserByPhone(normalizedPhone);
         if (!user) {
           return res.status(400).json({
             ok: false,
@@ -519,11 +527,7 @@ app
           });
         }
 
-        const user = await prisma.user.findFirst({
-          where: {
-            phone: normalizedPhone
-          }
-        });
+        const user = await findUserByPhone(normalizedPhone);
         if (!user) {
           return res.status(400).json({
             ok: false,
