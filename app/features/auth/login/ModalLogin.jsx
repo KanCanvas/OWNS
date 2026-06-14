@@ -346,22 +346,32 @@ export default function ModalLogin({ isOpen, onClose }) {
                 </label>
 
                 <label className={styles.field}>
-                  <span className={styles.fieldLabel}>Код из SMS</span>
+                  <span className={styles.fieldLabel}>Код из Telegram</span>
                   <div className={styles.inputWrap}>
                     <input
                       {...register("smsCode", { required: true })}
                       type="text"
                       inputMode="numeric"
                       className={`${styles.input} ${styles.inputTel}`}
-                      placeholder="6 цифр из сообщения"
+                      placeholder="6 цифр из Telegram-бота"
                       autoComplete="one-time-code"
                       maxLength={6}
                     />
                   </div>
                 </label>
 
-                <button type="button" className={styles.secondaryBtn}>
-                  Получить код по SMS
+                <button
+                  type="button"
+                  className={styles.secondaryBtn}
+                  onClick={() =>
+                    window.open(
+                      "https://t.me/OwnPizza_auth_bot",
+                      "_blank",
+                      "noopener,noreferrer"
+                    )
+                  }
+                >
+                  Получить код в Telegram
                 </button>
 
                 <button type="submit" className={styles.primaryBtn}>

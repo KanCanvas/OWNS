@@ -9,6 +9,13 @@ const next = require("next");
 const prisma = require("./lib/prisma");
 const { buildOrderItemsWithGift } = require("./lib/promo");
 const { notifyAdminAboutOrder } = require("./lib/telegram-notify");
+const { normalizePhone, phoneLookupVariants, phonesMatch } = require("./lib/phone");
+const {
+  findTelegramCode,
+  assertTelegramMatchesUser,
+  assertTelegramAvailableForRegister,
+  consumeTelegramCode,
+} = require("./lib/tg-auth");
 const { compare } = require("bcryptjs");
 
 const port = Number(process.env.PORT) || 3000;
@@ -38,6 +45,19 @@ const constructorIngredients = [
   "Лук",
   "Базилик"
 ];
+
+async function findUserByPhone(phone) {
+  const variants = phoneLookupVariants(phone);
+  if (!variants.length) return null;
+
+  return prisma.user.findFirst({
+    where: {
+      phone: {
+        in: variants,
+      },
+    },
+  });
+}
 
 app
   .prepare()
@@ -299,24 +319,26 @@ app
           });
         }
 
-        const codetg = await prisma.tgcode.findFirst({
-          where: {
-            code: numericSmsCode
-          }
-        });
-
-        if (!codetg) {
+        const codeResult = await findTelegramCode(prisma, numericSmsCode);
+        if (!codeResult.ok) {
           return res.status(400).json({
             ok: false,
-            error: "Неверный код."
+            error: codeResult.error,
           });
         }
 
-        const existingUser = await prisma.user.findFirst({
-          where: {
-            phone: normalizedPhone
-          }
-        });
+        const telegramCheck = await assertTelegramAvailableForRegister(
+          prisma,
+          codeResult.codetg
+        );
+        if (!telegramCheck.ok) {
+          return res.status(400).json({
+            ok: false,
+            error: telegramCheck.error,
+          });
+        }
+
+        const existingUser = await findUserByPhone(normalizedPhone);
 
         if (existingUser) {
           return res.status(400).json({
@@ -329,9 +351,12 @@ app
           data: {
             name: normalizedName,
             phone: normalizedPhone,
-            smsCode: numericSmsCode
+            smsCode: numericSmsCode,
+            telegramId: codeResult.codetg.telegramId,
           }
         });
+
+        await consumeTelegramCode(prisma, codeResult.codetg.id);
 
         const token = jwt.sign({ userId: users.id }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES_IN });
         
@@ -363,22 +388,15 @@ app
             error: "Код из SMS должен быть числом."
           });
         }
-        const codetg = await prisma.tgcode.findFirst({
-          where: {
-            code: numericSmsCode
-          }
-        });
-        if (!codetg) {
+        const codeResult = await findTelegramCode(prisma, numericSmsCode);
+        if (!codeResult.ok) {
           return res.status(400).json({
             ok: false,
-            error: "Неверный код."
+            error: codeResult.error,
           });
         }
-        const user = await prisma.user.findFirst({
-          where: {
-            phone: normalizedPhone
-          }
-        });
+
+        const user = await findUserByPhone(normalizedPhone);
         if (!user) {
           return res.status(400).json({
             ok: false,
@@ -386,15 +404,40 @@ app
           });
         }
 
+        const telegramCheck = await assertTelegramMatchesUser(
+          prisma,
+          user,
+          codeResult.codetg
+        );
+        if (!telegramCheck.ok) {
+          return res.status(403).json({
+            ok: false,
+            error: telegramCheck.error,
+          });
+        }
+
+        if (!user.telegramId) {
+          await prisma.user.update({
+            where: { id: user.id },
+            data: { telegramId: codeResult.codetg.telegramId },
+          });
+        }
+
+        await consumeTelegramCode(prisma, codeResult.codetg.id);
+
         const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES_IN });
 
-        // Если пользователь с номером телефона 87009581010 является Администратором
-        if(normalizedPhone === "87009581010") {
-          return res.status(200).json({ ok: true, user: { id: user.id, name: user.name, phone: user.phone, isAdmin: true } });
+        const adminPhone =
+          process.env.NEXT_PUBLIC_ADMIN_PHONE || "87009581010";
+        const courierPhone =
+          process.env.NEXT_PUBLIC_COURIER_PHONE || "87009582985";
+
+        if (phonesMatch(normalizedPhone, adminPhone)) {
+          return res.status(200).json({ ok: true, token, user: { id: user.id, name: user.name, phone: user.phone, isAdmin: true } });
         }    
         
-        if(normalizedPhone === "87009582985") {
-          return res.status(200).json({ok: true, user: {id: user.id, name: user.name, phone: user.phone, isСourier: true}})
+        if (phonesMatch(normalizedPhone, courierPhone)) {
+          return res.status(200).json({ok: true, token, user: {id: user.id, name: user.name, phone: user.phone, isCourier: true}})
         }
 
         return res.status(200).json({ ok: true, token, user: { id: user.id, name: user.name, phone: user.phone, isAdmin: false, isCourier: false } });

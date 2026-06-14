@@ -1,40 +1,68 @@
 require("dotenv").config();
-const { Telegraf } = require('telegraf');
-const { PrismaClient } = require('./generated/prisma');
+const { Telegraf } = require("telegraf");
+const { PrismaClient } = require("./generated/prisma");
+const { CODE_TTL_MS } = require("./lib/tg-auth");
 
 const prisma = new PrismaClient();
+
 function generateCode(length = 6) {
   return Math.floor(10 ** (length - 1) + Math.random() * 9 * 10 ** (length - 1));
 }
 
 const bot = new Telegraf(process.env.BOT_TOKEN);
 
-bot.start(async (ctx) => {
+async function issueTelegramCode(ctx) {
+  const telegramId = String(ctx.chat.id);
   const code = generateCode(6);
+
+  await prisma.tgcode.deleteMany({
+    where: { telegramId },
+  });
 
   await prisma.tgcode.create({
     data: {
-      code: code
-    }
+      code,
+      telegramId,
+    },
   });
+
+  setTimeout(async () => {
+    await prisma.tgcode.deleteMany({
+      where: {
+        code,
+        telegramId,
+      },
+    });
+  }, CODE_TTL_MS);
+
+  return code;
+}
+
+bot.start(async (ctx) => {
+  const code = await issueTelegramCode(ctx);
 
   await ctx.reply(
     [
       `Ваш код для входа: ${code}`,
       "",
-      `Ваш Telegram chat id: ${ctx.chat.id}`,
+      "Код действует 10 минут и привязан к вашему Telegram.",
+      "На сайте укажите свой номер телефона и этот код.",
       "",
-      "Этот chat id нужен для TELEGRAM_ADMIN_CHAT_ID, чтобы получать уведомления о заказах."
+      `Ваш Telegram chat id: ${ctx.chat.id}`,
     ].join("\n")
   );
+});
 
-  setInterval(async () => {
-    await prisma.tgcode.deleteMany({
-      where: {
-        code: code,
-      }
-    });
-  }, 60 * 10000);
+bot.command("code", async (ctx) => {
+  const code = await issueTelegramCode(ctx);
+
+  await ctx.reply(
+    [
+      `Новый код для входа: ${code}`,
+      "",
+      "Код действует 10 минут и работает только с вашим Telegram.",
+    ].join("\n")
+  );
 });
 
 bot.command("myid", (ctx) => {
@@ -48,9 +76,10 @@ bot.command("help", (ctx) => {
     [
       "Доступные команды:",
       "/start — получить код для входа на сайт",
+      "/code — получить новый код для входа",
       "/myid — узнать chat id для уведомлений о заказах",
       "",
-      "Пишите команды именно этому боту OWNpizza, не BotFather."
+      "Код привязан к вашему Telegram и не подойдёт для чужого номера.",
     ].join("\n")
   );
 });

@@ -50,7 +50,7 @@ export const ComponentRegister = ({ onClose }) => {
           {registerMethod === "email"
             ? "Заполните данные — вход будет по email и паролю."
             : registerMethod === "telegram"
-              ? "Укажите телефон и код из SMS, затем привяжите Telegram через бота."
+              ? "Укажите свой телефон и код из Telegram-бота. Код привязан к вашему Telegram."
               : "Выберите удобный способ регистрации."}
         </p>
       </div>
@@ -148,21 +148,27 @@ export const ComponentRegister = ({ onClose }) => {
               </div>
             </label>
             <label className={styles.field}>
-              <span className={styles.fieldLabel}>Код из SMS</span>
+              <span className={styles.fieldLabel}>Код из Telegram</span>
               <div className={styles.inputWrap}>
                 <input
                   {...register("smsCode", { required: true })}
                   type="text"
                   inputMode="numeric"
                   className={`${styles.input} ${styles.inputTel}`}
-                  placeholder="6 цифр из сообщения"
+                  placeholder="6 цифр из Telegram-бота"
                   autoComplete="one-time-code"
                   maxLength={6}
                 />
               </div>
             </label>
-            <button type="button" className={styles.secondaryBtn}>
-              Получить код по SMS
+            <button
+              type="button"
+              className={styles.secondaryBtn}
+              onClick={() =>
+                window.open(telegramBotUrl, "_blank", "noopener,noreferrer")
+              }
+            >
+              Получить код в Telegram
             </button>
           </>
         )}
