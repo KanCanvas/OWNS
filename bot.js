@@ -84,6 +84,22 @@ bot.command("help", (ctx) => {
   );
 });
 
-bot.launch();
+bot.on("message", async (ctx) => {
+  if (ctx.message.text && ctx.message.text.startsWith("/")) {
+    return;
+  }
+
+  await ctx.reply("Нажми /start, чтобы получить код для входа на сайт.");
+});
+
+bot.launch(async () => {
+  try {
+    await bot.telegram.setMyDescription(
+      "Нажми /start, чтобы получить код для входа на сайт."
+    );
+  } catch (error) {
+    console.error("Failed to set bot description:", error);
+  }
+});
 
 module.exports = bot;
