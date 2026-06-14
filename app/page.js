@@ -4,9 +4,16 @@ import { useEffect, useMemo, useState, useContext } from "react";
 import axios from "axios";
 import { CartContext } from "./context/CartProvider";
 import { useSearch } from "./context/SearchProvider";
+import ProductModal from "../components/ProductModal";
 import styles from "./page.module.css";
 import { formatPrice } from "../lib/formatPrice";
 import { notifyCartChange } from "../lib/cart-storage";
+import { drinks, filterDrinks } from "../lib/drinks";
+
+const CATALOGS = {
+  PIZZAS: "pizzas",
+  DRINKS: "drinks",
+};
 
 function setWithExpiry(key, value, ttl) {
   if (typeof window === "undefined") return;
@@ -39,14 +46,27 @@ function getWithExpiry(key) {
 
 export default function HomePage() {
   const { filteredPizzas, pizzas, searchQuery } = useSearch();
+  const [activeCatalog, setActiveCatalog] = useState(CATALOGS.PIZZAS);
+  const [selectedProduct, setSelectedProduct] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [ingredients, setIngredients] = useState([]);
   const [selectedIngredients, setSelectedIngredients] = useState([]);
   const [isLoadingIngredients, setIsLoadingIngredients] = useState(false);
   const [ingredientsError, setIngredientsError] = useState("");
   const { cartItem } = useContext(CartContext);
-
   const [cartItems, setCartItems] = useState({});
+
+  const filteredDrinks = useMemo(
+    () => filterDrinks(searchQuery),
+    [searchQuery]
+  );
+
+  const catalogProducts = useMemo(() => {
+    return activeCatalog === CATALOGS.DRINKS ? filteredDrinks : filteredPizzas;
+  }, [activeCatalog, filteredDrinks, filteredPizzas]);
+
+  const catalogTitle =
+    activeCatalog === CATALOGS.DRINKS ? "Напитки" : "Пиццы";
 
   const selectedPreview = useMemo(
     () => selectedIngredients.join(", "),
@@ -104,83 +124,66 @@ export default function HomePage() {
     );
   };
 
-  const getPizzaCount = (pizzaId) => {
-    const rawCount = cartItems[pizzaId]?.count ?? 0;
+  const getProductCount = (productId) => {
+    const rawCount = cartItems[productId]?.count ?? 0;
     const safeCount = Number(rawCount);
     if (!Number.isFinite(safeCount) || safeCount <= 0) return 0;
     return safeCount > 10 ? 10 : safeCount;
   };
 
-  const getPizzaLocal = (pizzaId) => {
-    if (typeof window === "undefined") return 0;
-    const rawCount =
-      JSON.parse(localStorage.getItem("cartElements") || "{}")[pizzaId]?.count ??
-      0;
-    const safeCount = Number(rawCount);
-    if (!Number.isFinite(safeCount) || safeCount <= 0) return 0;
-    return safeCount > 10 ? 10 : safeCount;
-  };
-
-  const incrementPizza = (pizza) => {
+  const setProductCount = (product, nextCount) => {
     setCartItems((prev) => {
-      const currentCount = Number(prev[pizza.id]?.count ?? 0);
-      const safeCurrent =
-        Number.isFinite(currentCount) && currentCount > 0 ? currentCount : 0;
-      const nextCount = safeCurrent >= 10 ? 10 : safeCurrent + 1;
+      const safeCount = Math.max(0, Math.min(10, Number(nextCount) || 0));
 
-      return {
-        ...prev,
-        [pizza.id]: {
-          ...pizza,
-          count: nextCount,
-        },
-      };
-    });
-  };
-
-  const decrementPizza = (pizza) => {
-    setCartItems((prev) => {
-      const currentCount = Number(prev[pizza.id]?.count ?? 0);
-      const safeCurrent =
-        Number.isFinite(currentCount) && currentCount > 0 ? currentCount : 0;
-      const nextCount = safeCurrent <= 0 ? 0 : safeCurrent - 1;
-
-      if (nextCount <= 0) {
+      if (safeCount <= 0) {
         const nextItems = { ...prev };
-        delete nextItems[pizza.id];
+        delete nextItems[product.id];
         return nextItems;
       }
 
       return {
         ...prev,
-        [pizza.id]: {
-          ...pizza,
-          count: nextCount,
+        [product.id]: {
+          ...product,
+          count: safeCount,
         },
       };
     });
   };
 
+  const openProductModal = (product) => {
+    setSelectedProduct(product);
+  };
+
+  const closeProductModal = () => {
+    setSelectedProduct(null);
+  };
+
   useEffect(() => {
     const savedCart = getWithExpiry("cartItems");
-    if (savedCart && typeof savedCart === "object" && !Array.isArray(savedCart)) {
-      const nextCart = {};
-
-      for (const pizza of pizzas) {
-        const savedItem = savedCart[pizza.id];
-        if (!savedItem) continue;
-
-        const savedCount = Number(savedItem.count ?? 0);
-        if (!Number.isFinite(savedCount) || savedCount <= 0) continue;
-
-        nextCart[pizza.id] = {
-          ...pizza,
-          count: savedCount > 10 ? 10 : savedCount,
-        };
-      }
-
-      setCartItems(nextCart);
+    if (!savedCart || typeof savedCart !== "object" || Array.isArray(savedCart)) {
+      return;
     }
+
+    const productById = Object.fromEntries(
+      [...pizzas, ...drinks].map((product) => [product.id, product])
+    );
+    const nextCart = {};
+
+    for (const [productId, savedItem] of Object.entries(savedCart)) {
+      const product = productById[productId];
+      if (!product) continue;
+
+      const savedCount = Number(savedItem?.count ?? 0);
+      if (!Number.isFinite(savedCount) || savedCount <= 0) continue;
+
+      nextCart[productId] = {
+        ...product,
+        count: savedCount > 10 ? 10 : savedCount,
+      };
+    }
+
+    setCartItems(nextCart);
   }, []);
 
   useEffect(() => {
@@ -213,58 +216,89 @@ export default function HomePage() {
 
   return (
     <section className="home-mock">
-      <h1 className="home-title">Все пиццы</h1>
+      <h1 className="home-title">{catalogTitle}</h1>
 
-      <div className="chips">
+      <div className={`chips ${styles.catalogTabs}`}>
         <button
-          className="tiny-action tiny-action-accent chips-constructor-btn"
           type="button"
-          onClick={openConstructorModal}
+          className={`chip ${activeCatalog === CATALOGS.PIZZAS ? "active" : ""}`}
+          onClick={() => setActiveCatalog(CATALOGS.PIZZAS)}
         >
-          Собрать
+          Пиццы
         </button>
+        <button
+          type="button"
+          className={`chip ${activeCatalog === CATALOGS.DRINKS ? "active" : ""}`}
+          onClick={() => setActiveCatalog(CATALOGS.DRINKS)}
+        >
+          Напитки
+        </button>
+        {activeCatalog === CATALOGS.PIZZAS ? (
+          <button
+            className="tiny-action tiny-action-accent chips-constructor-btn"
+            type="button"
+            onClick={openConstructorModal}
+          >
+            Собрать
+          </button>
+        ) : null}
       </div>
 
       <div className={styles.grid}>
-        {filteredPizzas.length > 0 ? (
-          filteredPizzas.map((pizza) => (
-          <article key={pizza.id} className={styles.card}>
-            <div className={styles.imageBlock}>
-              <img src={pizza.image} alt={pizza.name} />
-            </div>
-            <div className={styles.body}>
-              <h3>{pizza.name}</h3>
-              <p className={styles.size}>{pizza.size}</p>
-              <p>{pizza.description}</p>
-              <div className={styles.bottom}>
-                <strong>{formatPrice(pizza.price)} ₸</strong>
-                <div className="counter">
-                  <button type="button" onClick={() => decrementPizza(pizza)}>
-                    -
-                  </button>
-                  <span>
-                    {getPizzaCount(pizza.id) === 0
-                      ? getPizzaLocal(pizza.id)
-                      : getPizzaCount(pizza.id)}
-                  </span>
-                  <button
-                    type="button"
-                    disabled={getPizzaCount(pizza.id) >= 10}
-                    onClick={() => incrementPizza(pizza)}
-                  >
-                    +
-                  </button>
+        {catalogProducts.length > 0 ? (
+          catalogProducts.map((product) => {
+            const count = getProductCount(product.id);
+            const isDrink = product.category === "drinks";
+
+            return (
+              <article
+                key={product.id}
+                className={`${styles.card} ${isDrink ? styles.cardDrink : ""}`}
+                role="button"
+                tabIndex={0}
+                onClick={() => openProductModal(product)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    openProductModal(product);
+                  }
+                }}
+              >
+                <div className={styles.imageBlock}>
+                  <img src={product.image} alt={product.name} />
+                  {count > 0 ? (
+                    <span className={styles.cartBadge}>×{count}</span>
+                  ) : null}
                 </div>
-              </div>
-            </div>
-          </article>
-          ))
+                <div className={styles.body}>
+                  <h3>{product.name}</h3>
+                  {product.size ? (
+                    <p className={styles.size}>{product.size}</p>
+                  ) : null}
+                  <p>{product.description}</p>
+                  <div className={styles.bottom}>
+                    <strong>{formatPrice(product.price)} ₸</strong>
+                    <span className={styles.openHint}>Подробнее</span>
+                  </div>
+                </div>
+              </article>
+            );
+          })
         ) : (
           <p className={styles.emptySearch}>
             По запросу «{searchQuery}» ничего не найдено.
           </p>
         )}
       </div>
+
+      <ProductModal
+        product={selectedProduct}
+        initialCount={
+          selectedProduct ? getProductCount(selectedProduct.id) : 0
+        }
+        onClose={closeProductModal}
+        onChangeCount={setProductCount}
+      />
 
       {isModalOpen && (
         <div
