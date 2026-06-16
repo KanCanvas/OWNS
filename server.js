@@ -300,12 +300,11 @@ app
 
     server.post("/api/auth/register", async (req, res) => {
       try {
-        const {name, phone, smsCode } = req.body || {};
+        const { name, smsCode } = req.body || {};
         const normalizedName = String(name || "").trim();
-        const normalizedPhone = String(phone || "").trim();
         const numericSmsCode = Number(smsCode);
 
-        if (!normalizedName || !normalizedPhone || !smsCode) {
+        if (!normalizedName || !smsCode) {
           return res.status(400).json({
             ok: false,
             error: "Не все данные заполнены."
@@ -315,14 +314,7 @@ app
         if (!Number.isFinite(numericSmsCode)) {
           return res.status(400).json({
             ok: false,
-            error: "Код из SMS должен быть числом."
-          });
-        }
-
-        if (isPrivilegedPhone(normalizedPhone)) {
-          return res.status(400).json({
-            ok: false,
-            error: "Этот номер зарезервирован. Вход только по паролю.",
+            error: "Код должен быть числом."
           });
         }
 
@@ -331,6 +323,15 @@ app
           return res.status(400).json({
             ok: false,
             error: codeResult.error,
+          });
+        }
+
+        const verifiedPhone = codeResult.codetg.phone;
+
+        if (isPrivilegedPhone(verifiedPhone)) {
+          return res.status(400).json({
+            ok: false,
+            error: "Этот номер зарезервирован. Вход только по паролю.",
           });
         }
 
@@ -345,19 +346,19 @@ app
           });
         }
 
-        const existingUser = await findUserByPhone(normalizedPhone);
+        const existingUser = await findUserByPhone(verifiedPhone);
 
         if (existingUser) {
           return res.status(400).json({
             ok: false,
-            error: "Пользователь с этим номером уже зарегистрирован."
+            error: "Этот номер уже зарегистрирован. Войдите с кодом из бота.",
           });
         }
         
         const users = await prisma.user.create({
           data: {
             name: normalizedName,
-            phone: normalizedPhone,
+            phone: verifiedPhone,
             smsCode: numericSmsCode,
             telegramId: codeResult.codetg.telegramId,
           }
@@ -379,27 +380,20 @@ app
 
     server.post("/api/auth/login", async (req, res) => {
       try {
-        const { phone, smsCode } = req.body || {};
-        const normalizedPhone = String(phone || "").trim();
+        const { smsCode } = req.body || {};
         const numericSmsCode = Number(smsCode);
-        if (!normalizedPhone || !smsCode) {
+
+        if (!smsCode) {
           return res.status(400).json({
             ok: false,
-            error: "Не все данные заполнены."
+            error: "Введите код из Telegram-бота."
           });
         }
         
         if (!Number.isFinite(numericSmsCode)) {
           return res.status(400).json({
             ok: false,
-            error: "Код из SMS должен быть числом."
-          });
-        }
-
-        if (isPrivilegedPhone(normalizedPhone)) {
-          return res.status(403).json({
-            ok: false,
-            error: "Для номера администратора и курьера вход только по паролю.",
+            error: "Код должен быть числом."
           });
         }
 
@@ -411,11 +405,20 @@ app
           });
         }
 
-        const user = await findUserByPhone(normalizedPhone);
+        const verifiedPhone = codeResult.codetg.phone;
+
+        if (isPrivilegedPhone(verifiedPhone)) {
+          return res.status(403).json({
+            ok: false,
+            error: "Для номера администратора и курьера вход только по паролю.",
+          });
+        }
+
+        const user = await findUserByPhone(verifiedPhone);
         if (!user) {
           return res.status(400).json({
             ok: false,
-            error: "Пользователь не найден."
+            error: "Аккаунт не найден. Сначала зарегистрируйтесь через бота.",
           });
         }
 
@@ -431,7 +434,7 @@ app
           });
         }
 
-        if (!user.telegramId) {
+        if (!user.telegramId || telegramCheck.relink) {
           await prisma.user.update({
             where: { id: user.id },
             data: { telegramId: codeResult.codetg.telegramId },

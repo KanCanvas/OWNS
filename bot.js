@@ -1,7 +1,8 @@
 require("dotenv").config();
-const { Telegraf } = require("telegraf");
+const { Telegraf, Markup } = require("telegraf");
 const { PrismaClient } = require("./generated/prisma");
 const { CODE_TTL_MS } = require("./lib/tg-auth");
+const { formatPhoneForStorage, isPrivilegedPhone, phoneLookupVariants } = require("./lib/phone");
 
 const prisma = new PrismaClient();
 
@@ -11,9 +12,17 @@ function generateCode(length = 6) {
 
 const bot = new Telegraf(process.env.BOT_TOKEN);
 
-async function issueTelegramCode(ctx) {
-  const telegramId = String(ctx.chat.id);
+const contactKeyboard = Markup.keyboard([
+  [Markup.button.contactRequest("📱 Поделиться контактом")],
+])
+  .oneTime()
+  .resize();
+
+const removeKeyboard = Markup.removeKeyboard();
+
+async function issueTelegramCode(telegramId, phone) {
   const code = generateCode(6);
+  const storedPhone = formatPhoneForStorage(phone);
 
   await prisma.tgcode.deleteMany({
     where: { telegramId },
@@ -23,6 +32,7 @@ async function issueTelegramCode(ctx) {
     data: {
       code,
       telegramId,
+      phone: storedPhone,
     },
   });
 
@@ -38,30 +48,85 @@ async function issueTelegramCode(ctx) {
   return code;
 }
 
-bot.start(async (ctx) => {
-  const code = await issueTelegramCode(ctx);
+async function askForContact(ctx, text) {
+  await ctx.reply(text, contactKeyboard);
+}
 
-  await ctx.reply(
+bot.start(async (ctx) => {
+  await askForContact(
+    ctx,
     [
-      `Ваш код для входа: ${code}`,
+      "Для входа на сайт поделитесь своим номером телефона.",
       "",
-      "Код действует 10 минут и привязан к вашему Telegram.",
-      "На сайте укажите свой номер телефона и этот код.",
-      "",
-      `Ваш Telegram chat id: ${ctx.chat.id}`,
+      "Нажмите кнопку ниже — Telegram отправит ваш реальный номер.",
+      "После этого бот пришлёт код для входа на ownpizza.kz",
     ].join("\n")
   );
 });
 
 bot.command("code", async (ctx) => {
-  const code = await issueTelegramCode(ctx);
+  await askForContact(
+    ctx,
+    "Поделитесь контактом, чтобы получить новый код для входа на сайт."
+  );
+});
+
+bot.on("contact", async (ctx) => {
+  const contact = ctx.message.contact;
+
+  if (!contact || contact.user_id !== ctx.from.id) {
+    await ctx.reply(
+      "Нужно отправить именно свой контакт. Нажмите кнопку «Поделиться контактом».",
+      contactKeyboard
+    );
+    return;
+  }
+
+  const phone = formatPhoneForStorage(contact.phone_number);
+  if (!phone) {
+    await ctx.reply(
+      "Не удалось прочитать номер. Попробуйте ещё раз.",
+      contactKeyboard
+    );
+    return;
+  }
+
+  if (isPrivilegedPhone(phone)) {
+    await ctx.reply(
+      [
+        "Этот номер зарезервирован для администратора или курьера.",
+        "Вход на сайте — только по паролю.",
+      ].join("\n"),
+      removeKeyboard
+    );
+    return;
+  }
+
+  const telegramId = String(ctx.chat.id);
+  const code = await issueTelegramCode(telegramId, phone);
+  const existingUser = await prisma.user.findFirst({
+    where: {
+      phone: {
+        in: phoneLookupVariants(phone),
+      },
+    },
+  });
+
+  const actionText = existingUser
+    ? "На сайте нажмите «Войти» и введите этот код."
+    : "На сайте нажмите «Регистрация», укажите имя и введите этот код.";
 
   await ctx.reply(
     [
-      `Новый код для входа: ${code}`,
+      `Ваш код: ${code}`,
       "",
-      "Код действует 10 минут и работает только с вашим Telegram.",
-    ].join("\n")
+      `Номер подтверждён: +${phone}`,
+      "",
+      actionText,
+      "",
+      "Код действует 10 минут и привязан к вашему Telegram и номеру.",
+    ].join("\n"),
+    removeKeyboard
   );
 });
 
@@ -75,11 +140,11 @@ bot.command("help", (ctx) => {
   ctx.reply(
     [
       "Доступные команды:",
-      "/start — получить код для входа на сайт",
-      "/code — получить новый код для входа",
-      "/myid — узнать chat id для уведомлений о заказах",
+      "/start — поделиться контактом и получить код",
+      "/code — новый код для входа",
+      "/myid — chat id для уведомлений о заказах",
       "",
-      "Код привязан к вашему Telegram и не подойдёт для чужого номера.",
+      "Номер берётся только из кнопки «Поделиться контактом».",
     ].join("\n")
   );
 });
@@ -89,13 +154,20 @@ bot.on("message", async (ctx) => {
     return;
   }
 
-  await ctx.reply("Нажми /start, чтобы получить код для входа на сайт.");
+  if (ctx.message.contact) {
+    return;
+  }
+
+  await ctx.reply(
+    "Нажмите /start и поделитесь контактом, чтобы получить код для входа.",
+    contactKeyboard
+  );
 });
 
 bot.launch(async () => {
   try {
     await bot.telegram.setMyDescription(
-      "Нажми /start, чтобы получить код для входа на сайт."
+      "Нажми /start и поделись контактом, чтобы получить код для входа на сайт."
     );
   } catch (error) {
     console.error("Failed to set bot description:", error);

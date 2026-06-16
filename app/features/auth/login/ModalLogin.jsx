@@ -22,6 +22,7 @@ export default function ModalLogin({ isOpen, onClose }) {
   const [loginMethod, setLoginMethod] = useState(null);
   const [adminLoginStep, setAdminLoginStep] = useState(false);
   const [courierLoginStep, setCourierLoginStep] = useState(false);
+  const [staffLoginMode, setStaffLoginMode] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -30,7 +31,8 @@ export default function ModalLogin({ isOpen, onClose }) {
   useEffect(() => {
     reset();
     setAdminLoginStep(false);
-    setCourierLoginStep(false)
+    setCourierLoginStep(false);
+    setStaffLoginMode(false);
   }, [loginMethod, reset]);
 
   if (!isOpen || !mounted) return null;
@@ -38,32 +40,42 @@ export default function ModalLogin({ isOpen, onClose }) {
   const handleFormSubmit = async (data) => {
     if (
       loginMethod === "telegram" &&
+      staffLoginMode &&
       !adminLoginStep &&
-      data.password === undefined &&
-      String(data.phone).replace(/\D/g, "") ===
-        String(process.env.NEXT_PUBLIC_ADMIN_PHONE).replace(/\D/g, "")
-    ) {
-      setValue("phone", data.phone);
-      setAdminLoginStep(true);
-      return;
-    }
-
-    // Если это курьер то... делаем проверку и меням состояние на true у состояние courierLoginStep
-    if (
-      loginMethod === "telegram" &&
       !courierLoginStep &&
-      data.password === undefined &&
-      String(data.phone).replace(/\D/g, "") ===
-        String(process.env.NEXT_PUBLIC_COURIER_PHONE).replace(/\D/g, "")
+      data.password === undefined
     ) {
-      setValue("phone", data.phone);
-      setCourierLoginStep(true);
+      const enteredPhone = String(data.phone || "").replace(/\D/g, "");
+      const adminPhone = String(process.env.NEXT_PUBLIC_ADMIN_PHONE || "").replace(
+        /\D/g,
+        ""
+      );
+      const courierPhone = String(
+        process.env.NEXT_PUBLIC_COURIER_PHONE || ""
+      ).replace(/\D/g, "");
+
+      if (enteredPhone === adminPhone) {
+        setValue("phone", data.phone);
+        setAdminLoginStep(true);
+        return;
+      }
+
+      if (enteredPhone === courierPhone) {
+        setValue("phone", data.phone);
+        setCourierLoginStep(true);
+        return;
+      }
+
+      alert("Этот номер не зарезервирован для сотрудников.");
       return;
     }
 
     // После ввода пароля Админа, не нужно отправлять данные на сервер
     const shouldUserLogin =
-      !adminLoginStep && (loginMethod === "email" || data.password === undefined);
+      !adminLoginStep &&
+      !courierLoginStep &&
+      !staffLoginMode &&
+      (loginMethod === "email" || data.password === undefined);
     if (shouldUserLogin) {
       await onSubmit(data);
       return;
@@ -330,21 +342,34 @@ export default function ModalLogin({ isOpen, onClose }) {
                       Назад
                     </button>
                   </>
+                ) : staffLoginMode ? (
+                  <>
+                    <p className={styles.adminTitle}>ВХОД ДЛЯ СОТРУДНИКОВ</p>
+                    <label className={styles.field}>
+                      <span className={styles.fieldLabel}>Номер телефона</span>
+                      <div className={styles.inputWrap}>
+                        <input
+                          {...register("phone", { required: true })}
+                          type="tel"
+                          className={`${styles.input} ${styles.inputTel}`}
+                          placeholder="+7 (___) ___-__-__"
+                          autoComplete="tel"
+                        />
+                      </div>
+                    </label>
+                    <button type="submit" className={styles.primaryBtn}>
+                      Продолжить
+                    </button>
+                    <button
+                      type="button"
+                      className={styles.linkBtn}
+                      onClick={() => setStaffLoginMode(false)}
+                    >
+                      Назад
+                    </button>
+                  </>
                 ) : (
                   <>
-                <label className={styles.field}>
-                  <span className={styles.fieldLabel}>Номер телефона</span>
-                  <div className={styles.inputWrap}>
-                    <input
-                      {...register("phone", { required: true })}
-                      type="tel"
-                      className={`${styles.input} ${styles.inputTel}`}
-                      placeholder="+7 (___) ___-__-__"
-                      autoComplete="tel"
-                    />
-                  </div>
-                </label>
-
                 <label className={styles.field}>
                   <span className={styles.fieldLabel}>Код из Telegram</span>
                   <div className={styles.inputWrap}>
@@ -353,7 +378,7 @@ export default function ModalLogin({ isOpen, onClose }) {
                       type="text"
                       inputMode="numeric"
                       className={`${styles.input} ${styles.inputTel}`}
-                      placeholder="6 цифр из Telegram-бота"
+                      placeholder="6 цифр после отправки контакта"
                       autoComplete="one-time-code"
                       maxLength={6}
                     />
@@ -371,11 +396,19 @@ export default function ModalLogin({ isOpen, onClose }) {
                     )
                   }
                 >
-                  Получить код в Telegram
+                  Открыть бота и поделиться контактом
                 </button>
 
                 <button type="submit" className={styles.primaryBtn}>
                   Войти
+                </button>
+
+                <button
+                  type="button"
+                  className={styles.linkBtn}
+                  onClick={() => setStaffLoginMode(true)}
+                >
+                  Вход для администратора / курьера
                 </button>
                   </>
                 )}
