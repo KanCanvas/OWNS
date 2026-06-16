@@ -371,6 +371,19 @@ export default function ModalLogin({ isOpen, onClose }) {
                 ) : (
                   <>
                 <label className={styles.field}>
+                  <span className={styles.fieldLabel}>Номер телефона</span>
+                  <div className={styles.inputWrap}>
+                    <input
+                      {...register("phone", { required: true })}
+                      type="tel"
+                      className={`${styles.input} ${styles.inputTel}`}
+                      placeholder="+7 (___) ___-__-__"
+                      autoComplete="tel"
+                    />
+                  </div>
+                </label>
+
+                <label className={styles.field}>
                   <span className={styles.fieldLabel}>Код из Telegram</span>
                   <div className={styles.inputWrap}>
                     <input

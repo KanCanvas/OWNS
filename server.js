@@ -15,6 +15,7 @@ const {
   assertTelegramMatchesUser,
   assertTelegramAvailableForRegister,
   consumeTelegramCode,
+  assertEnteredPhoneMatchesVerified,
 } = require("./lib/tg-auth");
 const { compare } = require("bcryptjs");
 
@@ -300,11 +301,12 @@ app
 
     server.post("/api/auth/register", async (req, res) => {
       try {
-        const { name, smsCode } = req.body || {};
+        const { name, phone, smsCode } = req.body || {};
         const normalizedName = String(name || "").trim();
+        const normalizedPhone = String(phone || "").trim();
         const numericSmsCode = Number(smsCode);
 
-        if (!normalizedName || !smsCode) {
+        if (!normalizedName || !normalizedPhone || !smsCode) {
           return res.status(400).json({
             ok: false,
             error: "Не все данные заполнены."
@@ -327,6 +329,17 @@ app
         }
 
         const verifiedPhone = codeResult.codetg.phone;
+
+        const phoneCheck = assertEnteredPhoneMatchesVerified(
+          normalizedPhone,
+          verifiedPhone
+        );
+        if (!phoneCheck.ok) {
+          return res.status(400).json({
+            ok: false,
+            error: phoneCheck.error,
+          });
+        }
 
         if (isPrivilegedPhone(verifiedPhone)) {
           return res.status(400).json({
@@ -380,13 +393,14 @@ app
 
     server.post("/api/auth/login", async (req, res) => {
       try {
-        const { smsCode } = req.body || {};
+        const { phone, smsCode } = req.body || {};
+        const normalizedPhone = String(phone || "").trim();
         const numericSmsCode = Number(smsCode);
 
-        if (!smsCode) {
+        if (!normalizedPhone || !smsCode) {
           return res.status(400).json({
             ok: false,
-            error: "Введите код из Telegram-бота."
+            error: "Не все данные заполнены."
           });
         }
         
@@ -406,6 +420,17 @@ app
         }
 
         const verifiedPhone = codeResult.codetg.phone;
+
+        const phoneCheck = assertEnteredPhoneMatchesVerified(
+          normalizedPhone,
+          verifiedPhone
+        );
+        if (!phoneCheck.ok) {
+          return res.status(400).json({
+            ok: false,
+            error: phoneCheck.error,
+          });
+        }
 
         if (isPrivilegedPhone(verifiedPhone)) {
           return res.status(403).json({

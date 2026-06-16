@@ -50,7 +50,7 @@ export const ComponentRegister = ({ onClose }) => {
           {registerMethod === "email"
             ? "Заполните данные — вход будет по email и паролю."
             : registerMethod === "telegram"
-              ? "В боте нажмите /start и поделитесь контактом. Затем введите код и имя."
+              ? "Укажите тот же номер, что отправили боту, и код из Telegram."
               : "Выберите удобный способ регистрации."}
         </p>
       </div>
@@ -135,6 +135,18 @@ export const ComponentRegister = ({ onClose }) => {
 
         {registerMethod === "telegram" && (
           <>
+            <label className={styles.field}>
+              <span className={styles.fieldLabel}>Номер телефона</span>
+              <div className={styles.inputWrap}>
+                <input
+                  {...register("phone", { required: true })}
+                  type="tel"
+                  className={`${styles.input} ${styles.inputTel}`}
+                  placeholder="+7 (___) ___-__-__"
+                  autoComplete="tel"
+                />
+              </div>
+            </label>
             <label className={styles.field}>
               <span className={styles.fieldLabel}>Код из Telegram</span>
               <div className={styles.inputWrap}>
