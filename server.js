@@ -9,7 +9,7 @@ const next = require("next");
 const prisma = require("./lib/prisma");
 const { buildOrderItemsWithGift } = require("./lib/promo");
 const { notifyAdminAboutOrder } = require("./lib/telegram-notify");
-const { normalizePhone, phoneLookupVariants, phonesMatch, isPrivilegedPhone } = require("./lib/phone");
+const { normalizePhone, phoneLookupVariants, phonesMatch, isPrivilegedPhone, isAdminPhone, isCourierPhone } = require("./lib/phone");
 const {
   findTelegramCode,
   assertTelegramMatchesUser,
@@ -420,50 +420,52 @@ app
         }
 
         const verifiedPhone = codeResult.codetg.phone;
+        const isStaffLogin = isPrivilegedPhone(normalizedPhone);
 
-        const phoneCheck = assertEnteredPhoneMatchesVerified(
-          normalizedPhone,
-          verifiedPhone
+        if (!isStaffLogin) {
+          const phoneCheck = assertEnteredPhoneMatchesVerified(
+            normalizedPhone,
+            verifiedPhone
+          );
+          if (!phoneCheck.ok) {
+            return res.status(400).json({
+              ok: false,
+              error: phoneCheck.error,
+            });
+          }
+        }
+
+        const user = await findUserByPhone(
+          isStaffLogin ? normalizedPhone : verifiedPhone
         );
-        if (!phoneCheck.ok) {
-          return res.status(400).json({
-            ok: false,
-            error: phoneCheck.error,
-          });
-        }
-
-        if (isPrivilegedPhone(verifiedPhone)) {
-          return res.status(403).json({
-            ok: false,
-            error: "Для номера администратора и курьера вход только по паролю.",
-          });
-        }
-
-        const user = await findUserByPhone(verifiedPhone);
         if (!user) {
           return res.status(400).json({
             ok: false,
-            error: "Аккаунт не найден. Сначала зарегистрируйтесь через бота.",
+            error: isStaffLogin
+              ? "Аккаунт сотрудника не найден. Проверьте номер администратора или курьера."
+              : "Аккаунт не найден. Сначала зарегистрируйтесь через бота.",
           });
         }
 
-        const telegramCheck = await assertTelegramMatchesUser(
-          prisma,
-          user,
-          codeResult.codetg
-        );
-        if (!telegramCheck.ok) {
-          return res.status(403).json({
-            ok: false,
-            error: telegramCheck.error,
-          });
-        }
+        if (!isStaffLogin) {
+          const telegramCheck = await assertTelegramMatchesUser(
+            prisma,
+            user,
+            codeResult.codetg
+          );
+          if (!telegramCheck.ok) {
+            return res.status(403).json({
+              ok: false,
+              error: telegramCheck.error,
+            });
+          }
 
-        if (!user.telegramId || telegramCheck.relink) {
-          await prisma.user.update({
-            where: { id: user.id },
-            data: { telegramId: codeResult.codetg.telegramId },
-          });
+          if (!user.telegramId || telegramCheck.relink) {
+            await prisma.user.update({
+              where: { id: user.id },
+              data: { telegramId: codeResult.codetg.telegramId },
+            });
+          }
         }
 
         await consumeTelegramCode(prisma, codeResult.codetg.id);
@@ -477,8 +479,8 @@ app
             id: user.id,
             name: user.name,
             phone: user.phone,
-            isAdmin: false,
-            isCourier: false,
+            isAdmin: isAdminPhone(normalizedPhone),
+            isCourier: isCourierPhone(normalizedPhone),
           },
         });
       } catch (error) {

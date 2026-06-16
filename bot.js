@@ -91,17 +91,6 @@ bot.on("contact", async (ctx) => {
     return;
   }
 
-  if (isPrivilegedPhone(phone)) {
-    await ctx.reply(
-      [
-        "Этот номер зарезервирован для администратора или курьера.",
-        "Вход на сайте — только по паролю.",
-      ].join("\n"),
-      removeKeyboard
-    );
-    return;
-  }
-
   const telegramId = String(ctx.chat.id);
   const code = await issueTelegramCode(telegramId, phone);
   const existingUser = await prisma.user.findFirst({
@@ -112,9 +101,16 @@ bot.on("contact", async (ctx) => {
     },
   });
 
-  const actionText = existingUser
-    ? "На сайте нажмите «Войти», введите этот же номер и код."
-    : "На сайте нажмите «Регистрация», введите этот же номер, имя и код.";
+  let actionText;
+  if (isPrivilegedPhone(phone)) {
+    actionText =
+      "На сайте нажмите «Войти», введите номер администратора/курьера и этот код.";
+  } else if (existingUser) {
+    actionText = "На сайте нажмите «Войти», введите этот же номер и код.";
+  } else {
+    actionText =
+      "На сайте нажмите «Регистрация», введите этот же номер, имя и код.";
+  }
 
   await ctx.reply(
     [
