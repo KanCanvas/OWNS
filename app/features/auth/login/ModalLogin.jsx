@@ -120,7 +120,18 @@ export default function ModalLogin({ isOpen, onClose }) {
   };
 
   const onSubmit = async (data) => {
-    return await modelLogin(data, { reset, onClose, router });
+    const result = await modelLogin(data, { reset, onClose, router });
+
+    if (result?.requiresPassword) {
+      setValue("phone", data.phone);
+      if (result.isAdmin) {
+        setAdminLoginStep(true);
+        setCourierLoginStep(false);
+      } else if (result.isCourier) {
+        setCourierLoginStep(true);
+        setAdminLoginStep(false);
+      }
+    }
   };
 
   return createPortal(

@@ -1,31 +1,28 @@
 import responses from "./fetchLogin";
 import { saveAuthSession } from "../../../../lib/auth-storage";
 
-// Бизнес логика для входа в систему и для Админа
 export const modelLogin = async (data, { reset, onClose, router } = {}) => {
   try {
     const response = await responses(data);
 
     if (response.status === 200 || response.status === 201) {
-      const { token, user } = response.data;
+      const { token, user, requiresPassword, isAdmin, isCourier } =
+        response.data;
+
+      if (requiresPassword) {
+        return {
+          requiresPassword: true,
+          isAdmin: Boolean(isAdmin),
+          isCourier: Boolean(isCourier),
+        };
+      }
 
       if (token && user) {
-        saveAuthSession({
-          token,
-          user: {
-            ...user,
-            isAdmin: Boolean(user.isAdmin),
-            isCourier: Boolean(user.isCourier),
-          },
-        });
+        saveAuthSession({ token, user });
         reset();
         onClose?.();
         router.push("/account");
-        return;
-      }
-
-      if (user?.isAdmin) {
-        return user.phone;
+        return { ok: true };
       }
     }
   } catch (error) {
@@ -38,4 +35,6 @@ export const modelLogin = async (data, { reset, onClose, router } = {}) => {
       alert("Ошибка при входе");
     }
   }
+
+  return null;
 };

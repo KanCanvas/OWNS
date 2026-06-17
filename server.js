@@ -466,22 +466,32 @@ app
               data: { telegramId: codeResult.codetg.telegramId },
             });
           }
+
+          await consumeTelegramCode(prisma, codeResult.codetg.id);
+
+          const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES_IN });
+
+          return res.status(200).json({
+            ok: true,
+            token,
+            user: {
+              id: user.id,
+              name: user.name,
+              phone: user.phone,
+              isAdmin: false,
+              isCourier: false,
+            },
+          });
         }
 
         await consumeTelegramCode(prisma, codeResult.codetg.id);
 
-        const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES_IN });
-
         return res.status(200).json({
           ok: true,
-          token,
-          user: {
-            id: user.id,
-            name: user.name,
-            phone: user.phone,
-            isAdmin: isAdminPhone(normalizedPhone),
-            isCourier: isCourierPhone(normalizedPhone),
-          },
+          requiresPassword: true,
+          isAdmin: isAdminPhone(normalizedPhone),
+          isCourier: isCourierPhone(normalizedPhone),
+          phone: user.phone,
         });
       } catch (error) {
         console.error("Failed to login:", error);
