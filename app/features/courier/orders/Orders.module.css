@@ -175,6 +175,20 @@
   transform: scale(0.98);
 }
 
+.mapBlock {
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid #ffe1d3;
+  background: #fff;
+}
+
+.mapLabel {
+  margin: 0 0 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #e85d04;
+}
+
 @media (max-width: 740px) {
   .page {
     padding: 20px 16px 24px;

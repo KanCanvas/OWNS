@@ -1,9 +1,11 @@
 "use client"
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import modelCourierOrders from "./modelCourierOrders";
 import styles from "./Orders.module.css";
 import { modelTakeOrder } from "./takeOrder/modelTakeOrder";
 import { modelCompDelivery } from "./completeDelivery/modelCompDelivery";
+import DeliveryMap from "../../../../components/DeliveryMap";
+import { useCourierLocationShare } from "../../../../lib/useCourierLocationShare";
 
 
 export const ComponentCourierOrders = () => {
@@ -11,6 +13,7 @@ export const ComponentCourierOrders = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const [trigger, setTrigger] = useState(false);
+    const [trackingByUser, setTrackingByUser] = useState({});
 
     useEffect(() => {
         const loadOrders = async () => {
@@ -25,6 +28,51 @@ export const ComponentCourierOrders = () => {
         };
         loadOrders();
     }, [trigger]);
+
+    const activeDeliveries = useMemo(() => {
+        return orders
+            .filter((group) =>
+                group.orders.some((order) => order.idCourier && !order.ComplDelevery)
+            )
+            .map((group) => ({ userId: group.userId }));
+    }, [orders]);
+
+    useCourierLocationShare(activeDeliveries);
+
+    useEffect(() => {
+        const token = localStorage.getItem("token");
+        if (!token || !activeDeliveries.length) {
+            setTrackingByUser({});
+            return;
+        }
+
+        let cancelled = false;
+
+        Promise.all(
+            activeDeliveries.map(async (delivery) => {
+                const response = await fetch(
+                    `/api/delivery/tracking?userId=${delivery.userId}`,
+                    {
+                        headers: {
+                            Authorization: `Bearer ${token}`,
+                        },
+                    }
+                ).catch(() => null);
+
+                if (!response?.ok) return [delivery.userId, null];
+
+                const data = await response.json();
+                return [delivery.userId, data.tracking];
+            })
+        ).then((entries) => {
+            if (cancelled) return;
+            setTrackingByUser(Object.fromEntries(entries));
+        });
+
+        return () => {
+            cancelled = true;
+        };
+    }, [activeDeliveries, trigger]);
 
     const handleTakeOrder = async ( userId ) => {
       try {
@@ -65,7 +113,13 @@ export const ComponentCourierOrders = () => {
       </div>
     </div>
 
-    {orders.map((group) => (
+    {orders.map((group) => {
+      const isActiveDelivery = group.orders.some(
+        (order) => order.idCourier && !order.ComplDelevery
+      );
+      const tracking = trackingByUser[group.userId];
+
+      return (
       <div key={group.userId} className={styles.userCard}>
 
         <div className={styles.userHeader}>
@@ -89,6 +143,16 @@ export const ComponentCourierOrders = () => {
           </p>
         </div>
 
+        {isActiveDelivery && tracking?.isActive ? (
+          <div className={styles.mapBlock}>
+            <p className={styles.mapLabel}>Маршрут доставки</p>
+            <DeliveryMap
+              destination={tracking.destination}
+              courier={tracking.courier}
+            />
+          </div>
+        ) : null}
+
 
         <div className={styles.orders}>
           {group.orders.map((order) => (
@@ -108,7 +172,13 @@ export const ComponentCourierOrders = () => {
                 <span>Кол-во: {order.count}</span>
                 <span>{order.paymentMethod}</span>
                 <span>
-                  {order.complete ? "Готово" : "В процессе"}
+                  {order.ComplDelevery
+                    ? "Доставлен"
+                    : order.idCourier
+                      ? "В пути"
+                      : order.complete
+                        ? "Готово"
+                        : "В процессе"}
                 </span>
               </div>
             </div>
@@ -119,7 +189,7 @@ export const ComponentCourierOrders = () => {
             <button onClick={() => {handleTakeOrder(group.userId)}}>взять заказ</button>}
         </div>
       </div>
-    ))}
+    )})}
   </div>
 </section>
     );

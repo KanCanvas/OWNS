@@ -1,4 +1,5 @@
 const path = require("path");
+const http = require("http");
 const cookieParser = require("cookie-parser");
 const jwt = require("jsonwebtoken");
 
@@ -18,6 +19,13 @@ const {
   assertEnteredPhoneMatchesVerified,
 } = require("./lib/tg-auth");
 const { compare } = require("bcryptjs");
+const { initTrackingWs, notifyCustomerTracking } = require("./lib/tracking-ws");
+const {
+  startDeliveryTracking,
+  stopDeliveryTracking,
+  getActiveTrackingForUser,
+  serializeTracking,
+} = require("./lib/tracking-store");
 
 const port = Number(process.env.PORT) || 3000;
 const dev = process.env.NODE_ENV !== "production";
@@ -843,7 +851,28 @@ app
           where: { userId: String(normalizedOrderId), complete: true },
           data: { idCourier: String(userId) }
         });
-        return res.status(200).json({ ok: true, message: "Заказ взят." });
+
+        const customer = await prisma.user.findUnique({
+          where: { id: normalizedOrderId },
+        });
+
+        const addressParts = [
+          customer?.homeaddress,
+          customer?.homeentrance ? `подъезд ${customer.homeentrance}` : null,
+          customer?.homeapartment ? `кв. ${customer.homeapartment}` : null,
+        ].filter(Boolean);
+
+        const tracking = await startDeliveryTracking(prisma, {
+          userId: normalizedOrderId,
+          courierId: userId,
+          address: addressParts.join(", "),
+        });
+
+        return res.status(200).json({
+          ok: true,
+          message: "Заказ взят.",
+          tracking: serializeTracking(tracking),
+        });
       } catch (error) {
         console.error("Failed to take order:", error);
         return res.status(500).json({ ok: false, error: "Не удалось взять заказ." });
@@ -877,6 +906,20 @@ app
           where: {userId: String(normalizedUsersId), complete: true, idCourier: String(userId)},
           data: {ComplDelevery: true}
         });
+
+        await stopDeliveryTracking(prisma, normalizedUsersId);
+
+        notifyCustomerTracking(normalizedUsersId, {
+          userId: String(normalizedUsersId),
+          courierId: String(userId),
+          destLat: 0,
+          destLng: 0,
+          courierLat: null,
+          courierLng: null,
+          isActive: false,
+          updatedAt: new Date(),
+        });
+
          return res.status(200).json({ok: true, complDelivery: true});
       } catch (error) {
         console.log(error)
@@ -1014,9 +1057,69 @@ app
       }
     })
 
+    server.get("/api/delivery/tracking", async (req, res) => {
+      try {
+        const authHeader = req.headers.authorization;
+        if (!authHeader) {
+          return res.status(401).json({ ok: false, error: "Не авторизован." });
+        }
+
+        const token = authHeader.startsWith("Bearer ")
+          ? authHeader.slice(7)
+          : authHeader;
+
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const userId = decoded.userId;
+        if (!userId) {
+          return res.status(401).json({ ok: false, error: "Не авторизован." });
+        }
+
+        const requestedUserId = req.query.userId
+          ? String(req.query.userId)
+          : String(userId);
+
+        let tracking;
+
+        if (requestedUserId !== String(userId)) {
+          const authUser = await prisma.user.findUnique({
+            where: { id: Number(userId) },
+          });
+
+          if (!authUser || !isCourierPhone(authUser.phone)) {
+            return res.status(403).json({ ok: false, error: "Доступ запрещён." });
+          }
+
+          tracking = await getActiveTrackingForUser(prisma, requestedUserId);
+
+          if (tracking && String(tracking.courierId) !== String(userId)) {
+            return res.status(403).json({ ok: false, error: "Доступ запрещён." });
+          }
+        } else {
+          tracking = await getActiveTrackingForUser(prisma, userId);
+        }
+
+        return res.status(200).json({
+          ok: true,
+          tracking: serializeTracking(tracking),
+        });
+      } catch (error) {
+        console.error("Failed to load delivery tracking:", error);
+        return res.status(500).json({
+          ok: false,
+          error: "Не удалось загрузить отслеживание доставки.",
+        });
+      }
+    });
+
     server.all("/{*any}", (req, res) => handle(req, res));
 
-    server.listen(port, (err) => {
+    const httpServer = http.createServer(server);
+    initTrackingWs(httpServer, {
+      jwtSecret: process.env.JWT_SECRET,
+      prisma,
+    });
+
+    httpServer.listen(port, (err) => {
       if (err) throw err;
       console.log(`OWNpizza is running on http://localhost:${port}`);
     });

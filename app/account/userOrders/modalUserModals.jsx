@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import styles from "./modalUserModals.module.css";
+import OrderTrackingPanel from "../../../components/OrderTrackingPanel";
 
 const paymentLabels = {
   CASH: "Наличные",
@@ -24,8 +25,14 @@ function formatPrice(value) {
 }
 
 function getOrderStatus(order) {
+  if (order.ComplDelevery) {
+    return { label: "Доставлен", className: styles.statusDone };
+  }
+  if (order.idCourier && order.complete) {
+    return { label: "Курьер в пути", className: styles.statusDelivering };
+  }
   if (order.complete) {
-    return { label: "Выполнен", className: styles.statusDone };
+    return { label: "Готов к доставке", className: styles.statusReady };
   }
   if (order.take) {
     return { label: "В обработке", className: styles.statusProcessing };
@@ -97,6 +104,7 @@ export function ModalUserModals({ isOpen, onClose }) {
           </p>
         </div>
         <div className={styles.body}>
+          <OrderTrackingPanel />
           {orders.length === 0 ? (
             <div className={styles.empty}>
               <span className={styles.emptyIcon} aria-hidden>

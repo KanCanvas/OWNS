@@ -151,6 +151,8 @@ exports.Prisma.OrderScalarFieldEnum = {
 exports.Prisma.TgcodeScalarFieldEnum = {
   id: 'id',
   code: 'code',
+  telegramId: 'telegramId',
+  phone: 'phone',
   createdAt: 'createdAt'
 };
 
@@ -159,6 +161,7 @@ exports.Prisma.UserScalarFieldEnum = {
   name: 'name',
   phone: 'phone',
   smsCode: 'smsCode',
+  telegramId: 'telegramId',
   homeaddress: 'homeaddress',
   homeentrance: 'homeentrance',
   homeapartment: 'homeapartment',
@@ -166,6 +169,19 @@ exports.Prisma.UserScalarFieldEnum = {
   officename: 'officename',
   officefloor: 'officefloor',
   officecabinet: 'officecabinet'
+};
+
+exports.Prisma.DeliveryTrackingScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  courierId: 'courierId',
+  destLat: 'destLat',
+  destLng: 'destLng',
+  courierLat: 'courierLat',
+  courierLng: 'courierLng',
+  isActive: 'isActive',
+  updatedAt: 'updatedAt',
+  createdAt: 'createdAt'
 };
 
 exports.Prisma.SortOrder = {
@@ -191,7 +207,8 @@ exports.Prisma.ModelName = {
   Pizza: 'Pizza',
   Order: 'Order',
   Tgcode: 'Tgcode',
-  User: 'User'
+  User: 'User',
+  DeliveryTracking: 'DeliveryTracking'
 };
 
 /**

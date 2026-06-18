@@ -1,0 +1,28 @@
+.wrap {
+  width: 100%;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid #ffe1d3;
+  box-shadow: 0 8px 24px rgba(201, 113, 59, 0.12);
+  background: #fffaf6;
+}
+
+.map {
+  width: 100%;
+  height: 280px;
+}
+
+:global(.delivery-map-fallback) {
+  margin: 0;
+  padding: 24px 16px;
+  text-align: center;
+  color: #8a7e76;
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+@media (max-width: 740px) {
+  .map {
+    height: 240px;
+  }
+}
