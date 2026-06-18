@@ -856,16 +856,12 @@ app
           where: { id: normalizedOrderId },
         });
 
-        const addressParts = [
-          customer?.homeaddress,
-          customer?.homeentrance ? `подъезд ${customer.homeentrance}` : null,
-          customer?.homeapartment ? `кв. ${customer.homeapartment}` : null,
-        ].filter(Boolean);
-
         const tracking = await startDeliveryTracking(prisma, {
           userId: normalizedOrderId,
           courierId: userId,
-          address: addressParts.join(", "),
+          streetAddress: customer?.homeaddress || "",
+          entrance: customer?.homeentrance || "",
+          apartment: customer?.homeapartment || "",
         });
 
         return res.status(200).json({

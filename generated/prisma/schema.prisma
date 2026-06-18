@@ -66,14 +66,15 @@ model User {
 }
 
 model DeliveryTracking {
-  id         Int      @id @default(autoincrement())
-  userId     String   @unique
-  courierId  String
-  destLat    Float
-  destLng    Float
-  courierLat Float?
-  courierLng Float?
-  isActive   Boolean  @default(true)
-  updatedAt  DateTime @updatedAt
-  createdAt  DateTime @default(now())
+  id          Int      @id @default(autoincrement())
+  userId      String   @unique
+  courierId   String
+  destAddress String?
+  destLat     Float
+  destLng     Float
+  courierLat  Float?
+  courierLng  Float?
+  isActive    Boolean  @default(true)
+  updatedAt   DateTime @updatedAt
+  createdAt   DateTime @default(now())
 }

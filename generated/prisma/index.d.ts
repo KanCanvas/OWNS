@@ -5656,6 +5656,7 @@ export namespace Prisma {
     id: number | null
     userId: string | null
     courierId: string | null
+    destAddress: string | null
     destLat: number | null
     destLng: number | null
     courierLat: number | null
@@ -5669,6 +5670,7 @@ export namespace Prisma {
     id: number | null
     userId: string | null
     courierId: string | null
+    destAddress: string | null
     destLat: number | null
     destLng: number | null
     courierLat: number | null
@@ -5682,6 +5684,7 @@ export namespace Prisma {
     id: number
     userId: number
     courierId: number
+    destAddress: number
     destLat: number
     destLng: number
     courierLat: number
@@ -5713,6 +5716,7 @@ export namespace Prisma {
     id?: true
     userId?: true
     courierId?: true
+    destAddress?: true
     destLat?: true
     destLng?: true
     courierLat?: true
@@ -5726,6 +5730,7 @@ export namespace Prisma {
     id?: true
     userId?: true
     courierId?: true
+    destAddress?: true
     destLat?: true
     destLng?: true
     courierLat?: true
@@ -5739,6 +5744,7 @@ export namespace Prisma {
     id?: true
     userId?: true
     courierId?: true
+    destAddress?: true
     destLat?: true
     destLng?: true
     courierLat?: true
@@ -5839,6 +5845,7 @@ export namespace Prisma {
     id: number
     userId: string
     courierId: string
+    destAddress: string | null
     destLat: number
     destLng: number
     courierLat: number | null
@@ -5871,6 +5878,7 @@ export namespace Prisma {
     id?: boolean
     userId?: boolean
     courierId?: boolean
+    destAddress?: boolean
     destLat?: boolean
     destLng?: boolean
     courierLat?: boolean
@@ -5884,6 +5892,7 @@ export namespace Prisma {
     id?: boolean
     userId?: boolean
     courierId?: boolean
+    destAddress?: boolean
     destLat?: boolean
     destLng?: boolean
     courierLat?: boolean
@@ -5897,6 +5906,7 @@ export namespace Prisma {
     id?: boolean
     userId?: boolean
     courierId?: boolean
+    destAddress?: boolean
     destLat?: boolean
     destLng?: boolean
     courierLat?: boolean
@@ -5910,6 +5920,7 @@ export namespace Prisma {
     id?: boolean
     userId?: boolean
     courierId?: boolean
+    destAddress?: boolean
     destLat?: boolean
     destLng?: boolean
     courierLat?: boolean
@@ -5919,7 +5930,7 @@ export namespace Prisma {
     createdAt?: boolean
   }
 
-  export type DeliveryTrackingOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "courierId" | "destLat" | "destLng" | "courierLat" | "courierLng" | "isActive" | "updatedAt" | "createdAt", ExtArgs["result"]["deliveryTracking"]>
+  export type DeliveryTrackingOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "courierId" | "destAddress" | "destLat" | "destLng" | "courierLat" | "courierLng" | "isActive" | "updatedAt" | "createdAt", ExtArgs["result"]["deliveryTracking"]>
 
   export type $DeliveryTrackingPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "DeliveryTracking"
@@ -5928,6 +5939,7 @@ export namespace Prisma {
       id: number
       userId: string
       courierId: string
+      destAddress: string | null
       destLat: number
       destLng: number
       courierLat: number | null
@@ -6361,6 +6373,7 @@ export namespace Prisma {
     readonly id: FieldRef<"DeliveryTracking", 'Int'>
     readonly userId: FieldRef<"DeliveryTracking", 'String'>
     readonly courierId: FieldRef<"DeliveryTracking", 'String'>
+    readonly destAddress: FieldRef<"DeliveryTracking", 'String'>
     readonly destLat: FieldRef<"DeliveryTracking", 'Float'>
     readonly destLng: FieldRef<"DeliveryTracking", 'Float'>
     readonly courierLat: FieldRef<"DeliveryTracking", 'Float'>
@@ -6814,6 +6827,7 @@ export namespace Prisma {
     id: 'id',
     userId: 'userId',
     courierId: 'courierId',
+    destAddress: 'destAddress',
     destLat: 'destLat',
     destLng: 'destLng',
     courierLat: 'courierLat',
@@ -7249,6 +7263,7 @@ export namespace Prisma {
     id?: IntFilter<"DeliveryTracking"> | number
     userId?: StringFilter<"DeliveryTracking"> | string
     courierId?: StringFilter<"DeliveryTracking"> | string
+    destAddress?: StringNullableFilter<"DeliveryTracking"> | string | null
     destLat?: FloatFilter<"DeliveryTracking"> | number
     destLng?: FloatFilter<"DeliveryTracking"> | number
     courierLat?: FloatNullableFilter<"DeliveryTracking"> | number | null
@@ -7262,6 +7277,7 @@ export namespace Prisma {
     id?: SortOrder
     userId?: SortOrder
     courierId?: SortOrder
+    destAddress?: SortOrderInput | SortOrder
     destLat?: SortOrder
     destLng?: SortOrder
     courierLat?: SortOrderInput | SortOrder
@@ -7278,6 +7294,7 @@ export namespace Prisma {
     OR?: DeliveryTrackingWhereInput[]
     NOT?: DeliveryTrackingWhereInput | DeliveryTrackingWhereInput[]
     courierId?: StringFilter<"DeliveryTracking"> | string
+    destAddress?: StringNullableFilter<"DeliveryTracking"> | string | null
     destLat?: FloatFilter<"DeliveryTracking"> | number
     destLng?: FloatFilter<"DeliveryTracking"> | number
     courierLat?: FloatNullableFilter<"DeliveryTracking"> | number | null
@@ -7291,6 +7308,7 @@ export namespace Prisma {
     id?: SortOrder
     userId?: SortOrder
     courierId?: SortOrder
+    destAddress?: SortOrderInput | SortOrder
     destLat?: SortOrder
     destLng?: SortOrder
     courierLat?: SortOrderInput | SortOrder
@@ -7312,6 +7330,7 @@ export namespace Prisma {
     id?: IntWithAggregatesFilter<"DeliveryTracking"> | number
     userId?: StringWithAggregatesFilter<"DeliveryTracking"> | string
     courierId?: StringWithAggregatesFilter<"DeliveryTracking"> | string
+    destAddress?: StringNullableWithAggregatesFilter<"DeliveryTracking"> | string | null
     destLat?: FloatWithAggregatesFilter<"DeliveryTracking"> | number
     destLng?: FloatWithAggregatesFilter<"DeliveryTracking"> | number
     courierLat?: FloatNullableWithAggregatesFilter<"DeliveryTracking"> | number | null
@@ -7662,6 +7681,7 @@ export namespace Prisma {
   export type DeliveryTrackingCreateInput = {
     userId: string
     courierId: string
+    destAddress?: string | null
     destLat: number
     destLng: number
     courierLat?: number | null
@@ -7675,6 +7695,7 @@ export namespace Prisma {
     id?: number
     userId: string
     courierId: string
+    destAddress?: string | null
     destLat: number
     destLng: number
     courierLat?: number | null
@@ -7687,6 +7708,7 @@ export namespace Prisma {
   export type DeliveryTrackingUpdateInput = {
     userId?: StringFieldUpdateOperationsInput | string
     courierId?: StringFieldUpdateOperationsInput | string
+    destAddress?: NullableStringFieldUpdateOperationsInput | string | null
     destLat?: FloatFieldUpdateOperationsInput | number
     destLng?: FloatFieldUpdateOperationsInput | number
     courierLat?: NullableFloatFieldUpdateOperationsInput | number | null
@@ -7700,6 +7722,7 @@ export namespace Prisma {
     id?: IntFieldUpdateOperationsInput | number
     userId?: StringFieldUpdateOperationsInput | string
     courierId?: StringFieldUpdateOperationsInput | string
+    destAddress?: NullableStringFieldUpdateOperationsInput | string | null
     destLat?: FloatFieldUpdateOperationsInput | number
     destLng?: FloatFieldUpdateOperationsInput | number
     courierLat?: NullableFloatFieldUpdateOperationsInput | number | null
@@ -7713,6 +7736,7 @@ export namespace Prisma {
     id?: number
     userId: string
     courierId: string
+    destAddress?: string | null
     destLat: number
     destLng: number
     courierLat?: number | null
@@ -7725,6 +7749,7 @@ export namespace Prisma {
   export type DeliveryTrackingUpdateManyMutationInput = {
     userId?: StringFieldUpdateOperationsInput | string
     courierId?: StringFieldUpdateOperationsInput | string
+    destAddress?: NullableStringFieldUpdateOperationsInput | string | null
     destLat?: FloatFieldUpdateOperationsInput | number
     destLng?: FloatFieldUpdateOperationsInput | number
     courierLat?: NullableFloatFieldUpdateOperationsInput | number | null
@@ -7738,6 +7763,7 @@ export namespace Prisma {
     id?: IntFieldUpdateOperationsInput | number
     userId?: StringFieldUpdateOperationsInput | string
     courierId?: StringFieldUpdateOperationsInput | string
+    destAddress?: NullableStringFieldUpdateOperationsInput | string | null
     destLat?: FloatFieldUpdateOperationsInput | number
     destLng?: FloatFieldUpdateOperationsInput | number
     courierLat?: NullableFloatFieldUpdateOperationsInput | number | null
@@ -8172,6 +8198,7 @@ export namespace Prisma {
     id?: SortOrder
     userId?: SortOrder
     courierId?: SortOrder
+    destAddress?: SortOrder
     destLat?: SortOrder
     destLng?: SortOrder
     courierLat?: SortOrder
@@ -8193,6 +8220,7 @@ export namespace Prisma {
     id?: SortOrder
     userId?: SortOrder
     courierId?: SortOrder
+    destAddress?: SortOrder
     destLat?: SortOrder
     destLng?: SortOrder
     courierLat?: SortOrder
@@ -8206,6 +8234,7 @@ export namespace Prisma {
     id?: SortOrder
     userId?: SortOrder
     courierId?: SortOrder
+    destAddress?: SortOrder
     destLat?: SortOrder
     destLng?: SortOrder
     courierLat?: SortOrder

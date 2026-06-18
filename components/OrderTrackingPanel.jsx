@@ -28,6 +28,7 @@ export default function OrderTrackingPanel({ autoLoad = true }) {
     () => ({
       lat: tracking?.destination?.lat,
       lng: tracking?.destination?.lng,
+      address: tracking?.destination?.address,
     }),
     [tracking]
   );
@@ -113,9 +114,11 @@ export default function OrderTrackingPanel({ autoLoad = true }) {
           <p className={styles.badge}>Курьер в пути</p>
           <h3 className={styles.title}>Отслеживание заказа</h3>
           <p className={styles.subtitle}>
-            {isConnected
-              ? "Положение курьера обновляется в реальном времени"
-              : "Подключаемся к карте..."}
+            {destinationCoords.address
+              ? `Доставка: ${destinationCoords.address}`
+              : isConnected
+                ? "Положение курьера обновляется в реальном времени"
+                : "Подключаемся к карте..."}
           </p>
         </div>
         <span className={styles.liveDot} aria-hidden />

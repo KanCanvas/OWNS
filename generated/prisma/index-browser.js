@@ -175,6 +175,7 @@ exports.Prisma.DeliveryTrackingScalarFieldEnum = {
   id: 'id',
   userId: 'userId',
   courierId: 'courierId',
+  destAddress: 'destAddress',
   destLat: 'destLat',
   destLng: 'destLng',
   courierLat: 'courierLat',

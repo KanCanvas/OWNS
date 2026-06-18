@@ -44,6 +44,7 @@ export default function DeliveryMap({
 
   const destLat = Number(destination?.lat);
   const destLng = Number(destination?.lng);
+  const destLabel = destination?.address || "Адрес доставки";
   const courierLat = Number(courier?.lat);
   const courierLng = Number(courier?.lng);
 
@@ -75,7 +76,7 @@ export default function DeliveryMap({
 
           destMarkRef.current = new ymaps.Placemark(
             [destLat, destLng],
-            { balloonContent: "Адрес доставки" },
+            { balloonContent: destLabel },
             { preset: "islands#redFoodIcon" }
           );
 
@@ -95,6 +96,7 @@ export default function DeliveryMap({
 
         if (destMarkRef.current && Number.isFinite(destLat) && Number.isFinite(destLng)) {
           destMarkRef.current.geometry.setCoordinates([destLat, destLng]);
+          destMarkRef.current.properties.set("balloonContent", destLabel);
         }
 
         if (
@@ -137,7 +139,7 @@ export default function DeliveryMap({
     return () => {
       cancelled = true;
     };
-  }, [destLat, destLng, courierLat, courierLng]);
+  }, [destLat, destLng, destLabel, courierLat, courierLng]);
 
   useEffect(() => {
     return () => {
