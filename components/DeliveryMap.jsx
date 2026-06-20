@@ -1,7 +1,9 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import styles from "./DeliveryMap.module.css";
+
+const PIZZERIA_CENTER = [54.853633, 69.111996];
 
 let ymapsPromise = null;
 
@@ -36,6 +38,7 @@ export default function DeliveryMap({
   courier,
   className = "",
   size = "default",
+  enableDeviceLocate = false,
 }) {
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
@@ -49,6 +52,16 @@ export default function DeliveryMap({
   const courierLat = Number(courier?.lat);
   const courierLng = Number(courier?.lng);
 
+  const hasCourierCoords = Number.isFinite(courierLat) && Number.isFinite(courierLng);
+  const hasDestCoords = Number.isFinite(destLat) && Number.isFinite(destLng);
+
+  const centerOnCourier = useCallback(() => {
+    if (!mapInstanceRef.current || !hasCourierCoords) return;
+    mapInstanceRef.current.setCenter([courierLat, courierLng], 16, {
+      duration: 300,
+    });
+  }, [courierLat, courierLng, hasCourierCoords]);
+
   useEffect(() => {
     let cancelled = false;
     const apiKey = process.env.NEXT_PUBLIC_YANDEX_MAPS_API_KEY || "";
@@ -57,18 +70,19 @@ export default function DeliveryMap({
       .then((ymaps) => {
         if (cancelled || !mapRef.current) return;
 
-        const center = [
-          Number.isFinite(courierLat) ? courierLat : destLat,
-          Number.isFinite(courierLng) ? courierLng : destLng,
-        ];
+        const center = hasCourierCoords
+          ? [courierLat, courierLng]
+          : hasDestCoords
+            ? [destLat, destLng]
+            : PIZZERIA_CENTER;
 
         if (!mapInstanceRef.current) {
           mapInstanceRef.current = new ymaps.Map(
             mapRef.current,
             {
               center,
-              zoom: 13,
-              controls: ["zoomControl", "geolocationControl"],
+              zoom: 14,
+              controls: ["zoomControl"],
             },
             {
               suppressMapOpenBlock: true,
@@ -76,14 +90,14 @@ export default function DeliveryMap({
           );
 
           destMarkRef.current = new ymaps.Placemark(
-            [destLat, destLng],
+            hasDestCoords ? [destLat, destLng] : PIZZERIA_CENTER,
             { balloonContent: destLabel },
             { preset: "islands#redFoodIcon" }
           );
 
           courierMarkRef.current = new ymaps.Placemark(
-            [courierLat || destLat, courierLng || destLng],
-            { balloonContent: "Курьер" },
+            hasCourierCoords ? [courierLat, courierLng] : PIZZERIA_CENTER,
+            { balloonContent: enableDeviceLocate ? "Вы (курьер)" : "Курьер" },
             { preset: "islands#orangeDeliveryIcon" }
           );
 
@@ -91,21 +105,16 @@ export default function DeliveryMap({
           mapInstanceRef.current.geoObjects.add(courierMarkRef.current);
         }
 
-        if (courierMarkRef.current && Number.isFinite(courierLat) && Number.isFinite(courierLng)) {
+        if (courierMarkRef.current && hasCourierCoords) {
           courierMarkRef.current.geometry.setCoordinates([courierLat, courierLng]);
         }
 
-        if (destMarkRef.current && Number.isFinite(destLat) && Number.isFinite(destLng)) {
+        if (destMarkRef.current && hasDestCoords) {
           destMarkRef.current.geometry.setCoordinates([destLat, destLng]);
           destMarkRef.current.properties.set("balloonContent", destLabel);
         }
 
-        if (
-          Number.isFinite(courierLat) &&
-          Number.isFinite(courierLng) &&
-          Number.isFinite(destLat) &&
-          Number.isFinite(destLng)
-        ) {
+        if (hasCourierCoords && hasDestCoords) {
           if (routeRef.current) {
             mapInstanceRef.current.geoObjects.remove(routeRef.current);
           }
@@ -128,6 +137,8 @@ export default function DeliveryMap({
             routeRef.current.geometry.getBounds(),
             { checkZoomRange: true, zoomMargin: 40 }
           );
+        } else if (hasCourierCoords) {
+          mapInstanceRef.current.setCenter([courierLat, courierLng], 15);
         }
       })
       .catch(() => {
@@ -140,7 +151,7 @@ export default function DeliveryMap({
     return () => {
       cancelled = true;
     };
-  }, [destLat, destLng, destLabel, courierLat, courierLng]);
+  }, [destLat, destLng, destLabel, courierLat, courierLng, hasCourierCoords, hasDestCoords]);
 
   useEffect(() => {
     return () => {
@@ -151,6 +162,18 @@ export default function DeliveryMap({
 
   return (
     <div className={`${styles.wrap} ${size === "large" ? styles.wrapLarge : ""} ${className}`}>
+      {enableDeviceLocate ? (
+        <button
+          type="button"
+          className={styles.locateBtn}
+          onClick={centerOnCourier}
+          disabled={!hasCourierCoords}
+          aria-label="Показать моё GPS-положение"
+          title="Моё GPS-положение"
+        >
+          ◎
+        </button>
+      ) : null}
       <div ref={mapRef} className={styles.map} aria-label="Карта доставки" />
     </div>
   );

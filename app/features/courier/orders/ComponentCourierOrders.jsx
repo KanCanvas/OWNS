@@ -37,7 +37,7 @@ export const ComponentCourierOrders = () => {
             .map((group) => ({ userId: group.userId }));
     }, [orders]);
 
-    useCourierLocationShare(activeDeliveries);
+    const { coords: liveCourierCoords, geoError } = useCourierLocationShare(activeDeliveries);
 
     useEffect(() => {
         const token = localStorage.getItem("token");
@@ -146,9 +146,12 @@ export const ComponentCourierOrders = () => {
         {isActiveDelivery && tracking?.isActive ? (
           <div className={styles.mapBlock}>
             <p className={styles.mapLabel}>Маршрут доставки</p>
+            {geoError ? <p className={styles.geoHint}>{geoError}</p> : null}
             <DeliveryMap
               destination={tracking.destination}
-              courier={tracking.courier}
+              courier={liveCourierCoords || tracking.courier}
+              enableDeviceLocate
+              size="large"
             />
           </div>
         ) : null}

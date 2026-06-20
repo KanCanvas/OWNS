@@ -189,6 +189,16 @@
   color: #e85d04;
 }
 
+.geoHint {
+  margin: 0 0 8px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: #fff3e8;
+  color: #b85c1a;
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+
 @media (max-width: 740px) {
   .page {
     padding: 20px 16px 24px;
