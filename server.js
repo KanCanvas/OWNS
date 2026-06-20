@@ -10,6 +10,7 @@ const next = require("next");
 const prisma = require("./lib/prisma");
 const { buildOrderItemsWithGift } = require("./lib/promo");
 const { notifyAdminAboutOrder } = require("./lib/telegram-notify");
+const { groupOrdersByBatch } = require("./lib/order-batches");
 const { normalizePhone, phoneLookupVariants, phonesMatch, isPrivilegedPhone, isAdminPhone, isCourierPhone } = require("./lib/phone");
 const {
   findTelegramCode,
@@ -651,7 +652,11 @@ app
         }
 
         const orders = await prisma.order.findMany({
-          orderBy: { createdAt: "desc" }
+          where: {
+            ComplDelevery: false,
+            OR: [{ take: false }, { take: true, complete: false }],
+          },
+          orderBy: { createdAt: "desc" },
         });
 
         const numericUserIds = [
@@ -659,66 +664,21 @@ app
             orders
               .map((order) => Number(order.userId))
               .filter((id) => Number.isFinite(id))
-          )
+          ),
         ];
 
         const users = numericUserIds.length
           ? await prisma.user.findMany({
-              where: { id: { in: numericUserIds } }
+              where: { id: { in: numericUserIds } },
             })
           : [];
 
         const usersById = Object.fromEntries(users.map((item) => [String(item.id), item]));
-
-        const grouped = new Map();
-
-        for (const order of orders) {
-          const key = String(order.userId);
-          const customer = usersById[order.userId];
-
-          if (!grouped.has(key)) {
-            grouped.set(key, {
-              id: key,
-              userId: order.userId,
-              userName: customer?.name || "Неизвестный пользователь",
-              userPhone: customer?.phone || "—",
-              homeaddress: customer?.homeaddress || null,
-              homeentrance: customer?.homeentrance || null,
-              homeapartment: customer?.homeapartment || null,
-              createdAt: order.createdAt,
-              items: [],
-              total: 0
-            });
-          }
-
-          const group = grouped.get(key);
-
-          if (new Date(order.createdAt) > new Date(group.createdAt)) {
-            group.createdAt = order.createdAt;
-          }
-
-          group.items.push({
-            id: order.id,
-            pizzaName: order.pizzaName,
-            pizzaSize: order.pizzaSize,
-            pizzaPrice: order.pizzaPrice,
-            count: order.count,
-            total: order.total,
-            paymentMethod: order.paymentMethod,
-            createdAt: order.createdAt,
-            take: order.take,
-            complete: order.complete
-          });
-          group.total += order.total;
-        }
-
-        const groupedOrders = Array.from(grouped.values()).sort(
-          (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
-        );
+        const groupedOrders = groupOrdersByBatch(orders, usersById);
 
         return res.status(200).json({
           ok: true,
-          orders: groupedOrders
+          orders: groupedOrders,
         });
       } catch (error) {
         console.error("Failed to load admin orders:", error);
@@ -820,22 +780,26 @@ app
           return res.status(401).json({ ok: false, error: "Не авторизован." });
         }
 
-        const { orderId } = req.body || {};
-        const normalizedOrderId = Number(orderId);
-        if (!normalizedOrderId) {
+        const { orderIds } = req.body || {};
+        const normalizedOrderIds = Array.isArray(orderIds)
+          ? orderIds.map((id) => Number(id)).filter((id) => Number.isFinite(id) && id > 0)
+          : [];
+
+        if (!normalizedOrderIds.length) {
           return res.status(400).json({ ok: false, error: "Не все данные заполнены." });
         }
-        const order = await prisma.order.findMany({
-          where: { userId: String(normalizedOrderId) }
+
+        const orders = await prisma.order.findMany({
+          where: { id: { in: normalizedOrderIds } },
         });
-        
-        if (order.length === 0) {
-          return res.status(400).json({ ok: false, error: "Заказ уже в обработке." });
+
+        if (!orders.length) {
+          return res.status(400).json({ ok: false, error: "Заказ не найден." });
         }
 
         await prisma.order.updateMany({
-          where: { userId: String(normalizedOrderId) },
-          data: { take: true }
+          where: { id: { in: normalizedOrderIds } },
+          data: { take: true },
         });
         return res.status(200).json({ ok: true, message: "Заказ взят в обработку." });
       }catch (error){
@@ -1050,25 +1014,28 @@ app
           return res.status(403).json({ ok: false, error: "Доступ запрещён." });
         }
 
-        const { orderID } = req.body || {};
-        const normalizedOrderId = Number(orderID);
- 
-        if (!normalizedOrderId) {
+        const { orderIds } = req.body || {};
+        const normalizedOrderIds = Array.isArray(orderIds)
+          ? orderIds.map((id) => Number(id)).filter((id) => Number.isFinite(id) && id > 0)
+          : [];
+
+        if (!normalizedOrderIds.length) {
           return res.status(400).json({ ok: false, error: "Не все данные заполнены." });
         }
-        const order = await prisma.order.findMany({
-          where: { userId: String(normalizedOrderId) }
+
+        const orders = await prisma.order.findMany({
+          where: { id: { in: normalizedOrderIds } },
         });
-        
-        if (order.length === 0) {
-          return res.status(400).json({ ok: false, error: "Заказ уже в обработке." });
+
+        if (!orders.length) {
+          return res.status(400).json({ ok: false, error: "Заказ не найден." });
         }
 
         await prisma.order.updateMany({
-          where: { userId: String(normalizedOrderId) },
-          data: { complete: true }
+          where: { id: { in: normalizedOrderIds } },
+          data: { complete: true },
         });
-        return res.status(200).json({ ok: true, message: "Заказ взят в обработку." });
+        return res.status(200).json({ ok: true, message: "Заказ готов к доставке." });
       }catch(error){
         console.error("Failed to process order:", error);
         return res.status(500).json({ ok: false, error: "Не удалось взять заказ в обработку." });

@@ -43,6 +43,7 @@ function getOrderStatus(order) {
 export function ModalUserModals({ isOpen, onClose }) {
   const [orders, setOrders] = useState([]);
   const [mounted, setMounted] = useState(false);
+  const [hasTracking, setHasTracking] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -77,7 +78,7 @@ export function ModalUserModals({ isOpen, onClose }) {
       onClick={onClose}
     >
       <div
-        className={`app-modal ${styles.dialog}`}
+        className={`app-modal ${styles.dialog} ${hasTracking ? styles.dialogTracking : ""}`}
         role="dialog"
         aria-modal="true"
         aria-labelledby="user-orders-modal-title"
@@ -104,7 +105,7 @@ export function ModalUserModals({ isOpen, onClose }) {
           </p>
         </div>
         <div className={styles.body}>
-          <OrderTrackingPanel />
+          <OrderTrackingPanel onActiveChange={setHasTracking} />
           {orders.length === 0 ? (
             <div className={styles.empty}>
               <span className={styles.emptyIcon} aria-hidden>

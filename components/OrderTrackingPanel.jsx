@@ -12,7 +12,7 @@ function getTrackingSocketUrl(token) {
   return `${protocol}//${window.location.host}/ws/tracking?token=${encodeURIComponent(token)}`;
 }
 
-export default function OrderTrackingPanel({ autoLoad = true }) {
+export default function OrderTrackingPanel({ autoLoad = true, onActiveChange }) {
   const [tracking, setTracking] = useState(null);
   const [isLoading, setIsLoading] = useState(autoLoad);
   const [isConnected, setIsConnected] = useState(false);
@@ -52,11 +52,16 @@ export default function OrderTrackingPanel({ autoLoad = true }) {
       .then((data) => {
         if (data?.ok && data.tracking?.isActive) {
           setTracking(data.tracking);
+          onActiveChange?.(true);
         } else {
           setTracking(null);
+          onActiveChange?.(false);
         }
       })
-      .catch(() => setTracking(null))
+      .catch(() => {
+        setTracking(null);
+        onActiveChange?.(false);
+      })
       .finally(() => setIsLoading(false));
   }, [autoLoad]);
 
@@ -82,8 +87,10 @@ export default function OrderTrackingPanel({ autoLoad = true }) {
         ) {
           if (payload.tracking?.isActive) {
             setTracking(payload.tracking);
+            onActiveChange?.(true);
           } else {
             setTracking(null);
+            onActiveChange?.(false);
           }
         }
       } catch {
@@ -165,22 +172,39 @@ export default function OrderTrackingPanel({ autoLoad = true }) {
 
   return (
     <section className={styles.panel}>
-      <div className={styles.head}>
-        <div>
-          <p className={styles.badge}>Курьер в пути</p>
-          <h3 className={styles.title}>Отслеживание заказа</h3>
-          <p className={styles.subtitle}>
-            {destinationCoords.address
-              ? `Доставка: ${destinationCoords.address}`
-              : isConnected
-                ? "Положение курьера обновляется в реальном времени"
-                : "Подключаемся к карте..."}
-          </p>
+      <div className={styles.mapShell}>
+        <div className={styles.head}>
+          <div>
+            <p className={styles.badge}>Курьер в пути</p>
+            <h3 className={styles.title}>Отслеживание заказа</h3>
+            <p className={styles.subtitle}>
+              {destinationCoords.address
+                ? `Доставка: ${destinationCoords.address}`
+                : isConnected
+                  ? "Положение курьера обновляется в реальном времени"
+                  : "Подключаемся к карте..."}
+            </p>
+          </div>
+          <span className={styles.liveDot} aria-hidden />
         </div>
-        <span className={styles.liveDot} aria-hidden />
-      </div>
 
-      <DeliveryMap destination={destinationCoords} courier={courierCoords} />
+        <DeliveryMap
+          destination={destinationCoords}
+          courier={courierCoords}
+          size="large"
+        />
+
+        <div className={styles.legend}>
+          <span className={styles.legendItem}>
+            <span className={styles.legendDotCourier} aria-hidden />
+            Курьер
+          </span>
+          <span className={styles.legendItem}>
+            <span className={styles.legendDotDest} aria-hidden />
+            Адрес доставки
+          </span>
+        </div>
+      </div>
     </section>
   );
 }

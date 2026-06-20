@@ -19,6 +19,11 @@
   font-family: inherit;
 }
 
+.dialogTracking {
+  width: min(96vw, 760px);
+  max-height: 92vh;
+}
+
 .head {
   position: sticky;
   top: 0;

@@ -1,10 +1,14 @@
 .wrap {
   width: 100%;
-  border-radius: 16px;
+  border-radius: 0;
   overflow: hidden;
-  border: 1px solid #ffe1d3;
-  box-shadow: 0 8px 24px rgba(201, 113, 59, 0.12);
+  border: none;
+  box-shadow: none;
   background: #fffaf6;
+}
+
+.wrapLarge .map {
+  height: min(62vh, 560px);
 }
 
 .map {
@@ -22,6 +26,10 @@
 }
 
 @media (max-width: 740px) {
+  .wrapLarge .map {
+    height: min(68vh, 520px);
+  }
+
   .map {
     height: 240px;
   }

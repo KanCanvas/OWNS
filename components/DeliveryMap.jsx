@@ -35,6 +35,7 @@ export default function DeliveryMap({
   destination,
   courier,
   className = "",
+  size = "default",
 }) {
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
@@ -149,7 +150,7 @@ export default function DeliveryMap({
   }, []);
 
   return (
-    <div className={`${styles.wrap} ${className}`}>
+    <div className={`${styles.wrap} ${size === "large" ? styles.wrapLarge : ""} ${className}`}>
       <div ref={mapRef} className={styles.map} aria-label="Карта доставки" />
     </div>
   );
