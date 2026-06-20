@@ -31,13 +31,14 @@ function sumBatchTotal(items = []) {
 }
 
 function isNewBatch(order) {
-  return order.items.every((item) => !item.take);
+  return order.phase === "pending" || order.items.every((item) => !item.take);
 }
 
 function isProcessingBatch(order) {
   return (
-    order.items.every((item) => item.take) &&
-    order.items.some((item) => !item.complete)
+    order.phase === "processing" ||
+    (order.items.every((item) => item.take) &&
+      order.items.some((item) => !item.complete))
   );
 }
 
@@ -147,7 +148,7 @@ export default function ComponentAdminOrders() {
       <div className={styles.header}>
         <div className={styles.titleWrap}>
           <h1>Заказы пользователей</h1>
-          <p>Актуальные заказы по каждому оформлению</p>
+          <p>Новые заказы копятся, после «Взять» — отдельная карточка</p>
         </div>
         <Link href="/account" className={styles.backLink}>
           Назад в аккаунт
@@ -165,29 +166,35 @@ export default function ComponentAdminOrders() {
       ) : (
         <>
           {newOrders.length > 0 ? (
-            <div className={styles.grid}>
-              {newOrders.map((order) => (
-                <OrderBatchCard
-                  key={order.id}
-                  order={order}
-                  actionLabel="Взять"
-                  onAction={() => handleProcessingOrder(order)}
-                />
-              ))}
-            </div>
+            <>
+              <h2 className={styles.sectionTitle}>Новые заказы</h2>
+              <div className={styles.grid}>
+                {newOrders.map((order) => (
+                  <OrderBatchCard
+                    key={order.id}
+                    order={order}
+                    actionLabel="Взять"
+                    onAction={() => handleProcessingOrder(order)}
+                  />
+                ))}
+              </div>
+            </>
           ) : null}
 
           {processingOrders.length > 0 ? (
-            <div className={styles.grid}>
-              {processingOrders.map((order) => (
-                <OrderBatchCard
-                  key={order.id}
-                  order={order}
-                  actionLabel="Завершить"
-                  onAction={() => handleCompleteOrder(order)}
-                />
-              ))}
-            </div>
+            <>
+              <h2 className={styles.sectionTitle}>В обработке</h2>
+              <div className={styles.grid}>
+                {processingOrders.map((order) => (
+                  <OrderBatchCard
+                    key={order.id}
+                    order={order}
+                    actionLabel="Завершить"
+                    onAction={() => handleCompleteOrder(order)}
+                  />
+                ))}
+              </div>
+            </>
           ) : null}
         </>
       )}
