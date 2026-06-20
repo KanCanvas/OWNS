@@ -165,6 +165,8 @@ exports.Prisma.UserScalarFieldEnum = {
   homeaddress: 'homeaddress',
   homeentrance: 'homeentrance',
   homeapartment: 'homeapartment',
+  homeLat: 'homeLat',
+  homeLng: 'homeLng',
   officeaddress: 'officeaddress',
   officename: 'officename',
   officefloor: 'officefloor',

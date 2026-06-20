@@ -24,6 +24,7 @@ const {
   startDeliveryTracking,
   stopDeliveryTracking,
   getActiveTrackingForUser,
+  updateTrackingDestinationCoords,
   serializeTracking,
 } = require("./lib/tracking-store");
 
@@ -116,7 +117,7 @@ app
 
     server.post("/order", async (req, res) => {
       try {
-        const { pizza, paymentMethod, address, entrance, apartment } = req.body || {};
+        const { pizza, paymentMethod, address, entrance, apartment, addressLat, addressLng } = req.body || {};
       
         const authHeader = req.headers.authorization;
         if (!authHeader) {
@@ -152,19 +153,36 @@ app
 
         if(address !== user.homeaddress || entrance !== user.homeentrance || apartment !== user.homeapartment){
           if(address !== "" && entrance !== "" && apartment !== ""){
+            const parsedLat = Number(addressLat);
+            const parsedLng = Number(addressLng);
+            const updateData = {
+              homeaddress: address,
+              homeentrance: entrance,
+              homeapartment: apartment,
+            };
+
+            if (Number.isFinite(parsedLat) && Number.isFinite(parsedLng)) {
+              updateData.homeLat = parsedLat;
+              updateData.homeLng = parsedLng;
+            }
+
             await prisma.user.update({
               where: {
                 id: userId
               },
-              data: {
-                homeaddress: address,
-                homeentrance: entrance,
-                homeapartment: apartment,
-              }
+              data: updateData,
             })
           }
           console.log("Есть изменения в адресе доставки!");
 
+        } else if (Number.isFinite(Number(addressLat)) && Number.isFinite(Number(addressLng))) {
+          await prisma.user.update({
+            where: { id: userId },
+            data: {
+              homeLat: Number(addressLat),
+              homeLng: Number(addressLng),
+            },
+          });
         }
 
         if(address === "" && entrance === "" && apartment === ""){
@@ -290,6 +308,8 @@ app
             homeaddress: true,
             homeentrance: true,
             homeapartment: true,
+            homeLat: true,
+            homeLng: true,
           }
         })
 
@@ -862,6 +882,8 @@ app
           streetAddress: customer?.homeaddress || "",
           entrance: customer?.homeentrance || "",
           apartment: customer?.homeapartment || "",
+          destLat: customer?.homeLat,
+          destLng: customer?.homeLng,
         });
 
         return res.status(200).json({
@@ -1103,6 +1125,62 @@ app
         return res.status(500).json({
           ok: false,
           error: "Не удалось загрузить отслеживание доставки.",
+        });
+      }
+    });
+
+    server.post("/api/delivery/tracking/destination", async (req, res) => {
+      try {
+        const authHeader = req.headers.authorization;
+        if (!authHeader) {
+          return res.status(401).json({ ok: false, error: "Не авторизован." });
+        }
+
+        const token = authHeader.startsWith("Bearer ")
+          ? authHeader.slice(7)
+          : authHeader;
+
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const userId = decoded.userId;
+        if (!userId) {
+          return res.status(401).json({ ok: false, error: "Не авторизован." });
+        }
+
+        const { lat, lng, address } = req.body || {};
+        const parsedLat = Number(lat);
+        const parsedLng = Number(lng);
+
+        if (!Number.isFinite(parsedLat) || !Number.isFinite(parsedLng)) {
+          return res.status(400).json({ ok: false, error: "Некорректные координаты." });
+        }
+
+        const tracking = await updateTrackingDestinationCoords(prisma, userId, {
+          lat: parsedLat,
+          lng: parsedLng,
+          address,
+        });
+
+        if (!tracking) {
+          return res.status(404).json({ ok: false, error: "Активная доставка не найдена." });
+        }
+
+        await prisma.user.update({
+          where: { id: Number(userId) },
+          data: {
+            homeLat: parsedLat,
+            homeLng: parsedLng,
+          },
+        });
+
+        return res.status(200).json({
+          ok: true,
+          tracking: serializeTracking(tracking),
+        });
+      } catch (error) {
+        console.error("Failed to update tracking destination:", error);
+        return res.status(500).json({
+          ok: false,
+          error: "Не удалось обновить адрес на карте.",
         });
       }
     });

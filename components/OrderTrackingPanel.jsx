@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import DeliveryMap from "./DeliveryMap";
 import styles from "./OrderTrackingPanel.module.css";
+import { geocodeDeliveryAddress } from "../lib/geocode-client";
 
 function getTrackingSocketUrl(token) {
   if (typeof window === "undefined") return "";
@@ -94,6 +95,61 @@ export default function OrderTrackingPanel({ autoLoad = true }) {
 
     return () => socket.close();
   }, [tracking?.isActive, tracking?.userId]);
+
+  useEffect(() => {
+    if (!tracking?.isActive || !tracking?.destination?.address) return;
+
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    const streetOnly = String(tracking.destination.address).split(",")[0].trim();
+    if (!streetOnly) return;
+
+    let cancelled = false;
+
+    geocodeDeliveryAddress(streetOnly)
+      .then(async (geo) => {
+        if (cancelled || !geo) return;
+
+        const currentLat = Number(tracking.destination.lat);
+        const currentLng = Number(tracking.destination.lng);
+        const latDiff = Math.abs(geo.lat - currentLat);
+        const lngDiff = Math.abs(geo.lng - currentLng);
+
+        if (latDiff < 0.0003 && lngDiff < 0.0003) return;
+
+        setTracking((prev) =>
+          prev
+            ? {
+                ...prev,
+                destination: {
+                  ...prev.destination,
+                  lat: geo.lat,
+                  lng: geo.lng,
+                },
+              }
+            : prev
+        );
+
+        await fetch("/api/delivery/tracking/destination", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            lat: geo.lat,
+            lng: geo.lng,
+            address: tracking.destination.address,
+          }),
+        });
+      })
+      .catch(() => {});
+
+    return () => {
+      cancelled = true;
+    };
+  }, [tracking?.isActive, tracking?.destination?.address, tracking?.destination?.lat, tracking?.destination?.lng]);
 
   if (isLoading) {
     return (

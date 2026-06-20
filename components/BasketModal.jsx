@@ -18,6 +18,7 @@ import {
   buildOrderItemsWithGift,
   qualifiesForColaGift,
 } from "../lib/promo";
+import { geocodeDeliveryAddress } from "../lib/geocode-client";
 
 function pizzaWord(n) {
   const abs = Math.abs(n) % 100;
@@ -180,6 +181,22 @@ export default function BasketModal({ onRequireLogin }) {
       setCartItem(cartItems);
       const token = localStorage.getItem("token");
       const orderItems = buildOrderItemsWithGift(cartItems);
+
+      let addressLat = null;
+      let addressLng = null;
+
+      if (deliveryPlace === "HOME" && deliveryData.homeAddress.trim()) {
+        try {
+          const geo = await geocodeDeliveryAddress(deliveryData.homeAddress);
+          if (geo) {
+            addressLat = geo.lat;
+            addressLng = geo.lng;
+          }
+        } catch (geoError) {
+          console.warn("[order] Client geocode failed:", geoError);
+        }
+      }
+
       const response = await fetch("/order", {
         method: "POST",
         headers: {
@@ -195,6 +212,8 @@ export default function BasketModal({ onRequireLogin }) {
           address: deliveryData.homeAddress,
           entrance: deliveryData.homeEntrance,
           apartment: deliveryData.homeApartment,
+          addressLat,
+          addressLng,
         }),
       });
 
@@ -416,7 +435,7 @@ export default function BasketModal({ onRequireLogin }) {
                       id={`${deliveryFieldsId}-home-address`}
                       label="Адрес"
                       name="homeAddress"
-                      placeholder="ул. Абая, 10"
+                      placeholder="ул. Назарбаева, 12"
                       disabled={isOrdering}
                       value={deliveryData.homeAddress}
                       onChange={handleDeliveryChange}

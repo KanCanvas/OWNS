@@ -4515,11 +4515,15 @@ export namespace Prisma {
   export type UserAvgAggregateOutputType = {
     id: number | null
     smsCode: number | null
+    homeLat: number | null
+    homeLng: number | null
   }
 
   export type UserSumAggregateOutputType = {
     id: number | null
     smsCode: number | null
+    homeLat: number | null
+    homeLng: number | null
   }
 
   export type UserMinAggregateOutputType = {
@@ -4531,6 +4535,8 @@ export namespace Prisma {
     homeaddress: string | null
     homeentrance: string | null
     homeapartment: string | null
+    homeLat: number | null
+    homeLng: number | null
     officeaddress: string | null
     officename: string | null
     officefloor: string | null
@@ -4546,6 +4552,8 @@ export namespace Prisma {
     homeaddress: string | null
     homeentrance: string | null
     homeapartment: string | null
+    homeLat: number | null
+    homeLng: number | null
     officeaddress: string | null
     officename: string | null
     officefloor: string | null
@@ -4561,6 +4569,8 @@ export namespace Prisma {
     homeaddress: number
     homeentrance: number
     homeapartment: number
+    homeLat: number
+    homeLng: number
     officeaddress: number
     officename: number
     officefloor: number
@@ -4572,11 +4582,15 @@ export namespace Prisma {
   export type UserAvgAggregateInputType = {
     id?: true
     smsCode?: true
+    homeLat?: true
+    homeLng?: true
   }
 
   export type UserSumAggregateInputType = {
     id?: true
     smsCode?: true
+    homeLat?: true
+    homeLng?: true
   }
 
   export type UserMinAggregateInputType = {
@@ -4588,6 +4602,8 @@ export namespace Prisma {
     homeaddress?: true
     homeentrance?: true
     homeapartment?: true
+    homeLat?: true
+    homeLng?: true
     officeaddress?: true
     officename?: true
     officefloor?: true
@@ -4603,6 +4619,8 @@ export namespace Prisma {
     homeaddress?: true
     homeentrance?: true
     homeapartment?: true
+    homeLat?: true
+    homeLng?: true
     officeaddress?: true
     officename?: true
     officefloor?: true
@@ -4618,6 +4636,8 @@ export namespace Prisma {
     homeaddress?: true
     homeentrance?: true
     homeapartment?: true
+    homeLat?: true
+    homeLng?: true
     officeaddress?: true
     officename?: true
     officefloor?: true
@@ -4720,6 +4740,8 @@ export namespace Prisma {
     homeaddress: string | null
     homeentrance: string | null
     homeapartment: string | null
+    homeLat: number | null
+    homeLng: number | null
     officeaddress: string | null
     officename: string | null
     officefloor: string | null
@@ -4754,6 +4776,8 @@ export namespace Prisma {
     homeaddress?: boolean
     homeentrance?: boolean
     homeapartment?: boolean
+    homeLat?: boolean
+    homeLng?: boolean
     officeaddress?: boolean
     officename?: boolean
     officefloor?: boolean
@@ -4769,6 +4793,8 @@ export namespace Prisma {
     homeaddress?: boolean
     homeentrance?: boolean
     homeapartment?: boolean
+    homeLat?: boolean
+    homeLng?: boolean
     officeaddress?: boolean
     officename?: boolean
     officefloor?: boolean
@@ -4784,6 +4810,8 @@ export namespace Prisma {
     homeaddress?: boolean
     homeentrance?: boolean
     homeapartment?: boolean
+    homeLat?: boolean
+    homeLng?: boolean
     officeaddress?: boolean
     officename?: boolean
     officefloor?: boolean
@@ -4799,13 +4827,15 @@ export namespace Prisma {
     homeaddress?: boolean
     homeentrance?: boolean
     homeapartment?: boolean
+    homeLat?: boolean
+    homeLng?: boolean
     officeaddress?: boolean
     officename?: boolean
     officefloor?: boolean
     officecabinet?: boolean
   }
 
-  export type UserOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "phone" | "smsCode" | "telegramId" | "homeaddress" | "homeentrance" | "homeapartment" | "officeaddress" | "officename" | "officefloor" | "officecabinet", ExtArgs["result"]["user"]>
+  export type UserOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "phone" | "smsCode" | "telegramId" | "homeaddress" | "homeentrance" | "homeapartment" | "homeLat" | "homeLng" | "officeaddress" | "officename" | "officefloor" | "officecabinet", ExtArgs["result"]["user"]>
 
   export type $UserPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "User"
@@ -4819,6 +4849,8 @@ export namespace Prisma {
       homeaddress: string | null
       homeentrance: string | null
       homeapartment: string | null
+      homeLat: number | null
+      homeLng: number | null
       officeaddress: string | null
       officename: string | null
       officefloor: string | null
@@ -5254,6 +5286,8 @@ export namespace Prisma {
     readonly homeaddress: FieldRef<"User", 'String'>
     readonly homeentrance: FieldRef<"User", 'String'>
     readonly homeapartment: FieldRef<"User", 'String'>
+    readonly homeLat: FieldRef<"User", 'Float'>
+    readonly homeLng: FieldRef<"User", 'Float'>
     readonly officeaddress: FieldRef<"User", 'String'>
     readonly officename: FieldRef<"User", 'String'>
     readonly officefloor: FieldRef<"User", 'String'>
@@ -6814,6 +6848,8 @@ export namespace Prisma {
     homeaddress: 'homeaddress',
     homeentrance: 'homeentrance',
     homeapartment: 'homeapartment',
+    homeLat: 'homeLat',
+    homeLng: 'homeLng',
     officeaddress: 'officeaddress',
     officename: 'officename',
     officefloor: 'officefloor',
@@ -7179,6 +7215,8 @@ export namespace Prisma {
     homeaddress?: StringNullableFilter<"User"> | string | null
     homeentrance?: StringNullableFilter<"User"> | string | null
     homeapartment?: StringNullableFilter<"User"> | string | null
+    homeLat?: FloatNullableFilter<"User"> | number | null
+    homeLng?: FloatNullableFilter<"User"> | number | null
     officeaddress?: StringNullableFilter<"User"> | string | null
     officename?: StringNullableFilter<"User"> | string | null
     officefloor?: StringNullableFilter<"User"> | string | null
@@ -7194,6 +7232,8 @@ export namespace Prisma {
     homeaddress?: SortOrderInput | SortOrder
     homeentrance?: SortOrderInput | SortOrder
     homeapartment?: SortOrderInput | SortOrder
+    homeLat?: SortOrderInput | SortOrder
+    homeLng?: SortOrderInput | SortOrder
     officeaddress?: SortOrderInput | SortOrder
     officename?: SortOrderInput | SortOrder
     officefloor?: SortOrderInput | SortOrder
@@ -7212,6 +7252,8 @@ export namespace Prisma {
     homeaddress?: StringNullableFilter<"User"> | string | null
     homeentrance?: StringNullableFilter<"User"> | string | null
     homeapartment?: StringNullableFilter<"User"> | string | null
+    homeLat?: FloatNullableFilter<"User"> | number | null
+    homeLng?: FloatNullableFilter<"User"> | number | null
     officeaddress?: StringNullableFilter<"User"> | string | null
     officename?: StringNullableFilter<"User"> | string | null
     officefloor?: StringNullableFilter<"User"> | string | null
@@ -7227,6 +7269,8 @@ export namespace Prisma {
     homeaddress?: SortOrderInput | SortOrder
     homeentrance?: SortOrderInput | SortOrder
     homeapartment?: SortOrderInput | SortOrder
+    homeLat?: SortOrderInput | SortOrder
+    homeLng?: SortOrderInput | SortOrder
     officeaddress?: SortOrderInput | SortOrder
     officename?: SortOrderInput | SortOrder
     officefloor?: SortOrderInput | SortOrder
@@ -7250,6 +7294,8 @@ export namespace Prisma {
     homeaddress?: StringNullableWithAggregatesFilter<"User"> | string | null
     homeentrance?: StringNullableWithAggregatesFilter<"User"> | string | null
     homeapartment?: StringNullableWithAggregatesFilter<"User"> | string | null
+    homeLat?: FloatNullableWithAggregatesFilter<"User"> | number | null
+    homeLng?: FloatNullableWithAggregatesFilter<"User"> | number | null
     officeaddress?: StringNullableWithAggregatesFilter<"User"> | string | null
     officename?: StringNullableWithAggregatesFilter<"User"> | string | null
     officefloor?: StringNullableWithAggregatesFilter<"User"> | string | null
@@ -7584,6 +7630,8 @@ export namespace Prisma {
     homeaddress?: string | null
     homeentrance?: string | null
     homeapartment?: string | null
+    homeLat?: number | null
+    homeLng?: number | null
     officeaddress?: string | null
     officename?: string | null
     officefloor?: string | null
@@ -7599,6 +7647,8 @@ export namespace Prisma {
     homeaddress?: string | null
     homeentrance?: string | null
     homeapartment?: string | null
+    homeLat?: number | null
+    homeLng?: number | null
     officeaddress?: string | null
     officename?: string | null
     officefloor?: string | null
@@ -7613,6 +7663,8 @@ export namespace Prisma {
     homeaddress?: NullableStringFieldUpdateOperationsInput | string | null
     homeentrance?: NullableStringFieldUpdateOperationsInput | string | null
     homeapartment?: NullableStringFieldUpdateOperationsInput | string | null
+    homeLat?: NullableFloatFieldUpdateOperationsInput | number | null
+    homeLng?: NullableFloatFieldUpdateOperationsInput | number | null
     officeaddress?: NullableStringFieldUpdateOperationsInput | string | null
     officename?: NullableStringFieldUpdateOperationsInput | string | null
     officefloor?: NullableStringFieldUpdateOperationsInput | string | null
@@ -7628,6 +7680,8 @@ export namespace Prisma {
     homeaddress?: NullableStringFieldUpdateOperationsInput | string | null
     homeentrance?: NullableStringFieldUpdateOperationsInput | string | null
     homeapartment?: NullableStringFieldUpdateOperationsInput | string | null
+    homeLat?: NullableFloatFieldUpdateOperationsInput | number | null
+    homeLng?: NullableFloatFieldUpdateOperationsInput | number | null
     officeaddress?: NullableStringFieldUpdateOperationsInput | string | null
     officename?: NullableStringFieldUpdateOperationsInput | string | null
     officefloor?: NullableStringFieldUpdateOperationsInput | string | null
@@ -7643,6 +7697,8 @@ export namespace Prisma {
     homeaddress?: string | null
     homeentrance?: string | null
     homeapartment?: string | null
+    homeLat?: number | null
+    homeLng?: number | null
     officeaddress?: string | null
     officename?: string | null
     officefloor?: string | null
@@ -7657,6 +7713,8 @@ export namespace Prisma {
     homeaddress?: NullableStringFieldUpdateOperationsInput | string | null
     homeentrance?: NullableStringFieldUpdateOperationsInput | string | null
     homeapartment?: NullableStringFieldUpdateOperationsInput | string | null
+    homeLat?: NullableFloatFieldUpdateOperationsInput | number | null
+    homeLng?: NullableFloatFieldUpdateOperationsInput | number | null
     officeaddress?: NullableStringFieldUpdateOperationsInput | string | null
     officename?: NullableStringFieldUpdateOperationsInput | string | null
     officefloor?: NullableStringFieldUpdateOperationsInput | string | null
@@ -7672,6 +7730,8 @@ export namespace Prisma {
     homeaddress?: NullableStringFieldUpdateOperationsInput | string | null
     homeentrance?: NullableStringFieldUpdateOperationsInput | string | null
     homeapartment?: NullableStringFieldUpdateOperationsInput | string | null
+    homeLat?: NullableFloatFieldUpdateOperationsInput | number | null
+    homeLng?: NullableFloatFieldUpdateOperationsInput | number | null
     officeaddress?: NullableStringFieldUpdateOperationsInput | string | null
     officename?: NullableStringFieldUpdateOperationsInput | string | null
     officefloor?: NullableStringFieldUpdateOperationsInput | string | null
@@ -8128,6 +8188,17 @@ export namespace Prisma {
     code?: SortOrder
   }
 
+  export type FloatNullableFilter<$PrismaModel = never> = {
+    equals?: number | FloatFieldRefInput<$PrismaModel> | null
+    in?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
+    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
+    lt?: number | FloatFieldRefInput<$PrismaModel>
+    lte?: number | FloatFieldRefInput<$PrismaModel>
+    gt?: number | FloatFieldRefInput<$PrismaModel>
+    gte?: number | FloatFieldRefInput<$PrismaModel>
+    not?: NestedFloatNullableFilter<$PrismaModel> | number | null
+  }
+
   export type UserCountOrderByAggregateInput = {
     id?: SortOrder
     name?: SortOrder
@@ -8137,6 +8208,8 @@ export namespace Prisma {
     homeaddress?: SortOrder
     homeentrance?: SortOrder
     homeapartment?: SortOrder
+    homeLat?: SortOrder
+    homeLng?: SortOrder
     officeaddress?: SortOrder
     officename?: SortOrder
     officefloor?: SortOrder
@@ -8146,6 +8219,8 @@ export namespace Prisma {
   export type UserAvgOrderByAggregateInput = {
     id?: SortOrder
     smsCode?: SortOrder
+    homeLat?: SortOrder
+    homeLng?: SortOrder
   }
 
   export type UserMaxOrderByAggregateInput = {
@@ -8157,6 +8232,8 @@ export namespace Prisma {
     homeaddress?: SortOrder
     homeentrance?: SortOrder
     homeapartment?: SortOrder
+    homeLat?: SortOrder
+    homeLng?: SortOrder
     officeaddress?: SortOrder
     officename?: SortOrder
     officefloor?: SortOrder
@@ -8172,6 +8249,8 @@ export namespace Prisma {
     homeaddress?: SortOrder
     homeentrance?: SortOrder
     homeapartment?: SortOrder
+    homeLat?: SortOrder
+    homeLng?: SortOrder
     officeaddress?: SortOrder
     officename?: SortOrder
     officefloor?: SortOrder
@@ -8181,9 +8260,11 @@ export namespace Prisma {
   export type UserSumOrderByAggregateInput = {
     id?: SortOrder
     smsCode?: SortOrder
+    homeLat?: SortOrder
+    homeLng?: SortOrder
   }
 
-  export type FloatNullableFilter<$PrismaModel = never> = {
+  export type FloatNullableWithAggregatesFilter<$PrismaModel = never> = {
     equals?: number | FloatFieldRefInput<$PrismaModel> | null
     in?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
     notIn?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
@@ -8191,7 +8272,12 @@ export namespace Prisma {
     lte?: number | FloatFieldRefInput<$PrismaModel>
     gt?: number | FloatFieldRefInput<$PrismaModel>
     gte?: number | FloatFieldRefInput<$PrismaModel>
-    not?: NestedFloatNullableFilter<$PrismaModel> | number | null
+    not?: NestedFloatNullableWithAggregatesFilter<$PrismaModel> | number | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _avg?: NestedFloatNullableFilter<$PrismaModel>
+    _sum?: NestedFloatNullableFilter<$PrismaModel>
+    _min?: NestedFloatNullableFilter<$PrismaModel>
+    _max?: NestedFloatNullableFilter<$PrismaModel>
   }
 
   export type DeliveryTrackingCountOrderByAggregateInput = {
@@ -8250,22 +8336,6 @@ export namespace Prisma {
     destLng?: SortOrder
     courierLat?: SortOrder
     courierLng?: SortOrder
-  }
-
-  export type FloatNullableWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: number | FloatFieldRefInput<$PrismaModel> | null
-    in?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
-    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
-    lt?: number | FloatFieldRefInput<$PrismaModel>
-    lte?: number | FloatFieldRefInput<$PrismaModel>
-    gt?: number | FloatFieldRefInput<$PrismaModel>
-    gte?: number | FloatFieldRefInput<$PrismaModel>
-    not?: NestedFloatNullableWithAggregatesFilter<$PrismaModel> | number | null
-    _count?: NestedIntNullableFilter<$PrismaModel>
-    _avg?: NestedFloatNullableFilter<$PrismaModel>
-    _sum?: NestedFloatNullableFilter<$PrismaModel>
-    _min?: NestedFloatNullableFilter<$PrismaModel>
-    _max?: NestedFloatNullableFilter<$PrismaModel>
   }
 
   export type StringFieldUpdateOperationsInput = {

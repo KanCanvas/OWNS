@@ -59,6 +59,8 @@ model User {
   homeaddress   String?
   homeentrance  String?
   homeapartment String?
+  homeLat       Float?
+  homeLng       Float?
   officeaddress String?
   officename    String?
   officefloor   String?
