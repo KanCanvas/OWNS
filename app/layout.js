@@ -1,5 +1,6 @@
 import "./globals.css";
 import Header from "../components/Header";
+import MetaPixel from "../components/MetaPixel";
 import CartProvider from "./context/CartProvider";
 import { SearchProvider } from "./context/SearchProvider";
 
@@ -21,6 +22,7 @@ export default function RootLayout({ children }) {
   return (
     <html lang="ru">
       <body>
+        <MetaPixel />
         <div className="container app-shell">
           <CartProvider>
             <SearchProvider>
