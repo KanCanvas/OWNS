@@ -253,7 +253,7 @@ export default function HomePage() {
             return (
               <article
                 key={product.id}
-                className={`${styles.card} ${isDrink ? styles.cardDrink : ""}`}
+                className={`${styles.card} ${isDrink ? styles.cardDrink : styles.cardPizza}`}
                 role="button"
                 tabIndex={0}
                 onClick={() => openProductModal(product)}

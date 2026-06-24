@@ -37,8 +37,20 @@
   width: 100%;
   aspect-ratio: 860 / 710;
   overflow: hidden;
-  background: #111;
+  background: linear-gradient(180deg, #1f1b18 0%, #141210 100%);
   line-height: 0;
+}
+
+.cardPizza .imageBlock img {
+  position: absolute;
+  left: 50%;
+  top: 41%;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center;
+  transform: translate(-50%, -50%) scale(1.62);
+  transform-origin: center center;
 }
 
 .cardDrink .imageBlock {
@@ -46,18 +58,17 @@
 }
 
 .cardDrink .imageBlock img {
-  object-fit: contain;
-  padding: 12px;
-  box-sizing: border-box;
-}
-
-.imageBlock img {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
-  object-fit: cover;
-  object-position: center;
+  object-fit: contain;
+  padding: 12px;
+  box-sizing: border-box;
+  transform: none;
+}
+
+.imageBlock img {
   display: block;
 }
 
