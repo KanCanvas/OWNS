@@ -8,10 +8,11 @@ require("dotenv").config({ path: path.join(__dirname, ".env") });
 const express = require("express");
 const next = require("next");
 const prisma = require("./lib/prisma");
-const { buildOrderItemsWithGift } = require("./lib/promo");
 const { notifyAdminAboutOrder } = require("./lib/telegram-notify");
 const { groupOrdersByBatch } = require("./lib/order-batches");
 const { normalizePhone, phoneLookupVariants, phonesMatch, isPrivilegedPhone, isAdminPhone, isCourierPhone } = require("./lib/phone");
+const { placePizzaOrders } = require("./lib/place-order");
+const { resolveGuestCustomer } = require("./lib/guest-order");
 const {
   findTelegramCode,
   assertTelegramMatchesUser,
@@ -196,61 +197,17 @@ app
             .json({ ok: false, error: "Корзина пуста или данные некорректны." });
         }
 
-        const allowedMethods = new Set(["CASH", "KASPI"]);
-        const normalizedMethod = String(paymentMethod || "").toUpperCase();
-        if (!allowedMethods.has(normalizedMethod)) {
-          return res.status(400).json({
-            ok: false,
-            error: "Выберите способ оплаты: наличные или Kaspi."
-          });
+        const orderResult = await placePizzaOrders(prisma, {
+          userId,
+          pizza,
+          paymentMethod,
+        });
+
+        if (!orderResult.ok) {
+          return res.status(400).json(orderResult);
         }
 
-        const orderItems = buildOrderItemsWithGift(pizza);
-
-        const orders = [];
-        for (let i = 0; i < orderItems.length; i++) {
-          const item = orderItems[i];
-          if (!item) continue;
-
-          const itemCount = Number(item.count);
-          if (!Number.isFinite(itemCount) || itemCount <= 0) continue;
-
-          const pizzaPrice =
-            item.isGift
-              ? 0
-              : typeof item.price === "number" && Number.isFinite(item.price)
-                ? Math.round(item.price)
-                : null;
-
-          const itemTotal =
-            item.isGift ? 0 : pizzaPrice !== null ? pizzaPrice * itemCount : 0;
-
-          const order = await prisma.order.create({
-            data: {
-              pizzaId:
-                typeof item.id === "number" && Number.isFinite(item.id)
-                  ? item.id
-                  : null,
-              userId: String(userId),
-              pizzaName: item.isGift
-                ? `${String(item.name || "Подарок")} 🎁`
-                : String(item.name || "Без названия"),
-              pizzaSize: item.size ? String(item.size) : null,
-              pizzaPrice,
-              count: itemCount,
-              total: itemTotal,
-              paymentMethod: normalizedMethod
-            }
-          });
-          orders.push(order);
-        }
-
-        if (orders.length === 0) {
-          return res.status(400).json({
-            ok: false,
-            error: "Корзина пуста или данные некорректны."
-          });
-        }
+        const { orders, paymentMethod: normalizedMethod } = orderResult;
 
         notifyAdminAboutOrder({
           user,
@@ -280,6 +237,81 @@ app
             : isConnection
               ? "Не удаётся подключиться к PostgreSQL. Запустите Docker и выполните: docker compose up -d"
               : "Не удалось сохранить заказ."
+        });
+      }
+    });
+
+    server.post("/order/guest", async (req, res) => {
+      try {
+        const {
+          name,
+          phone,
+          pizza,
+          paymentMethod,
+          address,
+          entrance,
+          apartment,
+          addressLat,
+          addressLng,
+        } = req.body || {};
+
+        const guestResult = await resolveGuestCustomer(prisma, findUserByPhone, {
+          name,
+          phone,
+          address,
+          entrance,
+          apartment,
+          addressLat,
+          addressLng,
+        });
+
+        if (!guestResult.ok) {
+          return res.status(400).json(guestResult);
+        }
+
+        const { user } = guestResult;
+
+        const orderResult = await placePizzaOrders(prisma, {
+          userId: user.id,
+          pizza,
+          paymentMethod,
+        });
+
+        if (!orderResult.ok) {
+          return res.status(400).json(orderResult);
+        }
+
+        const { orders, paymentMethod: normalizedMethod } = orderResult;
+
+        notifyAdminAboutOrder({
+          user,
+          orders,
+          paymentMethod: normalizedMethod,
+          address: user.homeaddress || address,
+          entrance: user.homeentrance || entrance,
+          apartment: user.homeapartment || apartment,
+          isGuest: guestResult.isGuest,
+        }).catch((error) => {
+          console.error("Telegram order notification failed:", error);
+        });
+
+        return res.status(201).json({ ok: true, orders });
+      } catch (error) {
+        console.error("Failed to save guest order:", error);
+        const msg = String(error?.message || "");
+        const isDbUrl =
+          msg.includes("DATABASE_URL") ||
+          error?.name === "PrismaClientInitializationError";
+        const isConnection =
+          msg.includes("Can't reach database server") ||
+          msg.includes("P1001");
+        return res.status(500).json({
+          ok: false,
+          error: isDbUrl
+            ? "База не настроена: в корне проекта нужен файл .env с DATABASE_URL (см. .env.example)."
+            : isConnection
+              ? "Не удаётся подключиться к PostgreSQL. Запустите Docker и выполните: docker compose up -d"
+              : "Не удалось сохранить заказ.",
         });
       }
     });
@@ -390,21 +422,31 @@ app
 
         const existingUser = await findUserByPhone(verifiedPhone);
 
-        if (existingUser) {
+        if (existingUser?.telegramId) {
           return res.status(400).json({
             ok: false,
             error: "Этот номер уже зарегистрирован. Войдите с кодом из бота.",
           });
         }
-        
-        const users = await prisma.user.create({
-          data: {
-            name: normalizedName,
-            phone: verifiedPhone,
-            smsCode: numericSmsCode,
-            telegramId: codeResult.codetg.telegramId,
-          }
-        });
+
+        const users = existingUser
+          ? await prisma.user.update({
+              where: { id: existingUser.id },
+              data: {
+                name: normalizedName,
+                phone: verifiedPhone,
+                smsCode: numericSmsCode,
+                telegramId: codeResult.codetg.telegramId,
+              },
+            })
+          : await prisma.user.create({
+              data: {
+                name: normalizedName,
+                phone: verifiedPhone,
+                smsCode: numericSmsCode,
+                telegramId: codeResult.codetg.telegramId,
+              },
+            });
 
         await consumeTelegramCode(prisma, codeResult.codetg.id);
 

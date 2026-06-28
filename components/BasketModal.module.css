@@ -229,6 +229,43 @@
   gap: 10px;
 }
 
+.guestContact {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.guestHint {
+  margin: 0;
+  font-size: 0.75rem;
+  color: #71717a;
+  line-height: 1.4;
+}
+
+.guestLoginLink {
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: none;
+  color: #18181b;
+  font-size: inherit;
+  font-family: inherit;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+
+.guestLoginLink:hover:not(:disabled) {
+  color: #52525b;
+}
+
+.guestLoginLink:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
 .deliveryTitle {
   margin: 0;
   font-size: 0.75rem;

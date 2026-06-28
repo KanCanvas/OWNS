@@ -49,6 +49,16 @@ function DeliveryField({ id, label, name, value, onChange, placeholder, disabled
   );
 }
 
+const EMPTY_DELIVERY = {
+  homeAddress: "",
+  homeEntrance: "",
+  homeApartment: "",
+  officeAddress: "",
+  officeOrganization: "",
+  officeFloor: "",
+  officeRoom: "",
+};
+
 export default function BasketModal({ onRequireLogin }) {
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -60,19 +70,20 @@ export default function BasketModal({ onRequireLogin }) {
   const [orderSuccess, setOrderSuccess] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("CASH");
   const [deliveryPlace, setDeliveryPlace] = useState("HOME");
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [guestContact, setGuestContact] = useState({ name: "", phone: "" });
   const { cartItem, setCartItem } = useContext(CartContext);
   const [trigger, setTrigger] = useState(false);
 
-  const [deliveryData, setDeliveryData] = useState({
-    homeAddress: "",
-    homeEntrance: "",
-    homeApartment: "",
-  
-    officeAddress: "",
-    officeOrganization: "",
-    officeFloor: "",
-    officeRoom: "",
-  });
+  const [deliveryData, setDeliveryData] = useState({ ...EMPTY_DELIVERY });
+
+  const handleGuestContactChange = (e) => {
+    const { name, value } = e.target;
+    setGuestContact((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
 
   const handleDeliveryChange = (e) => {
     const { name, value } = e.target;
@@ -137,6 +148,15 @@ export default function BasketModal({ onRequireLogin }) {
     refreshCartSummary();
     setOrderError("");
     setOrderSuccess("");
+
+    const loggedIn = Boolean(getStoredUser());
+    setIsLoggedIn(loggedIn);
+
+    if (!loggedIn) {
+      setGuestContact({ name: "", phone: "" });
+      setDeliveryData({ ...EMPTY_DELIVERY });
+    }
+
     setOpen(true);
   };
 
@@ -159,18 +179,41 @@ export default function BasketModal({ onRequireLogin }) {
       return;
     }
 
-    if (!getStoredUser()) {
-      setOrderError("");
-      setOrderSuccess("");
-      setOpen(false);
-      onRequireLogin?.();
-      return;
-    }
-
     if (paymentMethod !== "CASH" && paymentMethod !== "KASPI") {
       setOrderError("Выберите способ оплаты: наличные или Kaspi.");
       setOrderSuccess("");
       return;
+    }
+
+    const loggedIn = Boolean(getStoredUser());
+    setIsLoggedIn(loggedIn);
+
+    if (!loggedIn) {
+      const guestName = guestContact.name.trim();
+      const guestPhone = guestContact.phone.trim();
+
+      if (!guestName) {
+        setOrderError("Укажите имя для заказа.");
+        setOrderSuccess("");
+        return;
+      }
+
+      if (!guestPhone) {
+        setOrderError("Укажите номер телефона для связи.");
+        setOrderSuccess("");
+        return;
+      }
+
+      const hasAddress =
+        deliveryData.homeAddress.trim() ||
+        deliveryData.homeEntrance.trim() ||
+        deliveryData.homeApartment.trim();
+
+      if (!hasAddress) {
+        setOrderError("Укажите адрес доставки.");
+        setOrderSuccess("");
+        return;
+      }
     }
 
     setIsOrdering(true);
@@ -179,7 +222,6 @@ export default function BasketModal({ onRequireLogin }) {
 
     try {
       setCartItem(cartItems);
-      const token = localStorage.getItem("token");
       const orderItems = buildOrderItemsWithGift(cartItems);
 
       let addressLat = null;
@@ -197,25 +239,44 @@ export default function BasketModal({ onRequireLogin }) {
         }
       }
 
-      const response = await fetch("/order", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          pizza: orderItems,
-          count: cartCountInModal,
-          total: cartTotalInModal,
-          paymentMethod,
-          createdAt: new Date().toISOString(),
-          address: deliveryData.homeAddress,
-          entrance: deliveryData.homeEntrance,
-          apartment: deliveryData.homeApartment,
-          addressLat,
-          addressLng,
-        }),
-      });
+      const orderPayload = {
+        pizza: orderItems,
+        count: cartCountInModal,
+        total: cartTotalInModal,
+        paymentMethod,
+        createdAt: new Date().toISOString(),
+        address: deliveryData.homeAddress,
+        entrance: deliveryData.homeEntrance,
+        apartment: deliveryData.homeApartment,
+        addressLat,
+        addressLng,
+      };
+
+      let response;
+
+      if (loggedIn) {
+        const token = localStorage.getItem("token");
+        response = await fetch("/order", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(orderPayload),
+        });
+      } else {
+        response = await fetch("/order/guest", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            ...orderPayload,
+            name: guestContact.name.trim(),
+            phone: guestContact.phone.trim(),
+          }),
+        });
+      }
 
       setTrigger(true);
 
@@ -266,17 +327,23 @@ export default function BasketModal({ onRequireLogin }) {
 
   useEffect(() => {
     const fetchData = async () => {
+      const user = getStoredUser();
+      setIsLoggedIn(Boolean(user));
+      if (!user) return;
+
       const token = localStorage.getItem("token");
+      if (!token) return;
+
       const userAddres = await modelUserAddress(token);
       setDeliveryData((prev) => ({
         ...prev,
         homeAddress: userAddres?.address?.homeaddress || "",
         homeEntrance: userAddres?.address?.homeentrance || "",
-        homeApartment: userAddres?.address?.homeapartment || ""
-      }))
-    }
-    fetchData()
-  }, [])
+        homeApartment: userAddres?.address?.homeapartment || "",
+      }));
+    };
+    fetchData();
+  }, []);
 
   const modal = open && (
     <div
@@ -391,6 +458,46 @@ export default function BasketModal({ onRequireLogin }) {
               </article>
             </>
           )}
+
+          {cartCountInModal > 0 && cartItems.length > 0 && !isLoggedIn ? (
+            <section className={styles.guestContact} aria-label="Контактные данные">
+              <h3 className={styles.deliveryTitle}>Ваши данные</h3>
+              <div className={styles.deliveryFields}>
+                <DeliveryField
+                  id={`${deliveryFieldsId}-guest-name`}
+                  label="Имя"
+                  name="name"
+                  placeholder="Как к вам обращаться"
+                  disabled={isOrdering}
+                  value={guestContact.name}
+                  onChange={handleGuestContactChange}
+                />
+                <DeliveryField
+                  id={`${deliveryFieldsId}-guest-phone`}
+                  label="Телефон"
+                  name="phone"
+                  placeholder="87001234567"
+                  disabled={isOrdering}
+                  value={guestContact.phone}
+                  onChange={handleGuestContactChange}
+                />
+              </div>
+              <p className={styles.guestHint}>
+                Уже есть аккаунт?{" "}
+                <button
+                  type="button"
+                  className={styles.guestLoginLink}
+                  onClick={() => {
+                    setOpen(false);
+                    onRequireLogin?.();
+                  }}
+                  disabled={isOrdering}
+                >
+                  Войти или зарегистрироваться
+                </button>
+              </p>
+            </section>
+          ) : null}
 
           {cartCountInModal > 0 && cartItems.length > 0 ? (
             <section className={styles.delivery} aria-label="Адрес доставки">
