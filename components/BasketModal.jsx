@@ -19,6 +19,14 @@ import {
   qualifiesForColaGift,
 } from "../lib/promo";
 import { geocodeDeliveryAddress } from "../lib/geocode-client";
+import {
+  DELIVERY_FEE,
+  FREE_DELIVERY_THRESHOLD,
+  amountUntilFreeDelivery,
+  getDeliveryFee,
+  getOrderTotal,
+  qualifiesForFreeDelivery,
+} from "../lib/delivery";
 
 function pizzaWord(n) {
   const abs = Math.abs(n) % 100;
@@ -166,11 +174,17 @@ export default function BasketModal({ onRequireLogin }) {
   }, [open, refreshCartSummary]);
 
   const cartCountInModal = cartItems.reduce((sum, item) => sum + item.count, 0);
-  const cartTotalInModal = cartItems.reduce(
+  const cartSubtotalInModal = cartItems.reduce(
     (sum, item) => sum + (typeof item.price === "number" ? item.price * item.count : 0),
     0
   );
+  const deliveryFeeInModal = getDeliveryFee(cartSubtotalInModal);
+  const orderTotalInModal = getOrderTotal(cartSubtotalInModal);
+  const amountForFreeDelivery = amountUntilFreeDelivery(cartSubtotalInModal);
+  const hasFreeDelivery = qualifiesForFreeDelivery(cartSubtotalInModal);
   const hasColaGift = qualifiesForColaGift(cartItems);
+  const floatingDeliveryFee = getDeliveryFee(cartTotal);
+  const floatingOrderTotal = getOrderTotal(cartTotal);
 
   const handleOrder = async () => {
     if (cartItems.length === 0 || cartCountInModal <= 0) {
@@ -242,7 +256,7 @@ export default function BasketModal({ onRequireLogin }) {
       const orderPayload = {
         pizza: orderItems,
         count: cartCountInModal,
-        total: cartTotalInModal,
+        total: orderTotalInModal,
         paymentMethod,
         createdAt: new Date().toISOString(),
         address: deliveryData.homeAddress,
@@ -450,10 +464,38 @@ export default function BasketModal({ onRequireLogin }) {
                   Добавьте ещё одну пиццу — получите {PROMO_COLA_GIFT.name} бесплатно!
                 </p>
               ) : null}
+
+              {!hasFreeDelivery && cartSubtotalInModal > 0 ? (
+                <p className={styles.deliveryHint}>
+                  Закажите на сумму от {FREE_DELIVERY_THRESHOLD.toLocaleString("ru-RU")} ₸ и
+                  выше — доставка бесплатно!
+                  {amountForFreeDelivery > 0 ? (
+                    <>
+                      {" "}
+                      Добавьте ещё на {amountForFreeDelivery.toLocaleString("ru-RU")} ₸.
+                    </>
+                  ) : null}
+                </p>
+              ) : null}
+
               <article className={styles.card}>
-                <div className={styles.total}>
-                  <span>Итого</span>
-                  <strong>{cartTotalInModal.toLocaleString("ru-RU")} ₸</strong>
+                <div className={styles.summaryBlock}>
+                  <div className={styles.summaryRow}>
+                    <span>Товары</span>
+                    <strong>{cartSubtotalInModal.toLocaleString("ru-RU")} ₸</strong>
+                  </div>
+                  <div className={styles.summaryRow}>
+                    <span>Доставка</span>
+                    <strong className={deliveryFeeInModal === 0 ? styles.deliveryFree : ""}>
+                      {deliveryFeeInModal === 0
+                        ? "Бесплатно"
+                        : `${DELIVERY_FEE.toLocaleString("ru-RU")} ₸`}
+                    </strong>
+                  </div>
+                  <div className={`${styles.summaryRow} ${styles.summaryTotal}`}>
+                    <span>Итого к оплате</span>
+                    <strong>{orderTotalInModal.toLocaleString("ru-RU")} ₸</strong>
+                  </div>
                 </div>
               </article>
             </>
@@ -677,7 +719,7 @@ export default function BasketModal({ onRequireLogin }) {
               type="button"
               className={styles.floatingBar}
               onClick={openBasket}
-              aria-label={`Корзина: ${cartCount} ${pizzaWord(cartCount)}, ${cartTotal.toLocaleString("ru-RU")} тенге`}
+              aria-label={`Корзина: ${cartCount} ${pizzaWord(cartCount)}, ${floatingOrderTotal.toLocaleString("ru-RU")} тенге`}
             >
               <span className={styles.floatingMain}>
                 <span className={styles.floatingCount} aria-hidden>
@@ -686,7 +728,13 @@ export default function BasketModal({ onRequireLogin }) {
                 <span className={styles.floatingLabel}>Корзина</span>
               </span>
               <span className={styles.floatingTotal}>
-                {cartTotal.toLocaleString("ru-RU")} ₸
+                {floatingOrderTotal.toLocaleString("ru-RU")} ₸
+                {floatingDeliveryFee > 0 ? (
+                  <span className={styles.floatingDeliveryNote}>
+                    {" "}
+                    с доставкой
+                  </span>
+                ) : null}
               </span>
             </button>,
             document.body
