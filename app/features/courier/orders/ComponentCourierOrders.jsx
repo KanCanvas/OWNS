@@ -37,7 +37,8 @@ export const ComponentCourierOrders = () => {
             .map((group) => ({ userId: group.userId }));
     }, [orders]);
 
-    const { coords: liveCourierCoords, geoError } = useCourierLocationShare(activeDeliveries);
+    const { coords: liveCourierCoords, geoError, geoDenied, retryGeoLocation } =
+        useCourierLocationShare(activeDeliveries);
 
     useEffect(() => {
         const token = localStorage.getItem("token");
@@ -146,7 +147,25 @@ export const ComponentCourierOrders = () => {
         {isActiveDelivery && tracking?.isActive ? (
           <div className={styles.mapBlock}>
             <p className={styles.mapLabel}>Маршрут доставки</p>
-            {geoError ? <p className={styles.geoHint}>{geoError}</p> : null}
+            {geoError ? (
+              <div className={styles.geoHint}>
+                <p className={styles.geoHintText}>{geoError}</p>
+                <button
+                  type="button"
+                  className={styles.geoRetryBtn}
+                  onClick={retryGeoLocation}
+                >
+                  Разрешить геолокацию
+                </button>
+                {geoDenied ? (
+                  <p className={styles.geoHintHelp}>
+                    Если окно не появилось: Настройки iPhone → Safari →
+                    Геопозиция → ownpizza.kz → «При использовании приложения».
+                    На Mac: Safari → Настройки → Веб-сайты → Службы геолокации.
+                  </p>
+                ) : null}
+              </div>
+            ) : null}
             <DeliveryMap
               destination={tracking.destination}
               courier={liveCourierCoords || tracking.courier}

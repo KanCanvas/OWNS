@@ -191,12 +191,44 @@
 
 .geoHint {
   margin: 0 0 8px;
-  padding: 8px 10px;
+  padding: 10px 12px;
   border-radius: 10px;
   background: #fff3e8;
   color: #b85c1a;
   font-size: 0.78rem;
   line-height: 1.4;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.geoHintText {
+  margin: 0;
+}
+
+.geoRetryBtn {
+  align-self: flex-start;
+  margin: 0;
+  padding: 8px 14px;
+  border: none;
+  border-radius: 999px;
+  background: #ff7a3d;
+  color: #fff;
+  font-size: 0.78rem;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.geoRetryBtn:active {
+  transform: scale(0.98);
+}
+
+.geoHintHelp {
+  margin: 0;
+  font-size: 0.72rem;
+  line-height: 1.45;
+  color: #8a4b18;
 }
 
 @media (max-width: 740px) {
