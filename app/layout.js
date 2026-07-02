@@ -10,11 +10,12 @@ export const metadata = {
   description: "Доставка пиццы в Петропавловске — OWNpizza",
   icons: {
     icon: [
-      { url: "/favicon.png", type: "image/png" },
-      { url: "/img/logo.png", type: "image/png", sizes: "512x512" },
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/favicon.png", type: "image/png", sizes: "32x32" },
+      { url: "/favicon.png", type: "image/png", sizes: "192x192" },
     ],
     apple: [{ url: "/apple-touch-icon.png", type: "image/png", sizes: "180x180" }],
-    shortcut: "/favicon.png",
+    shortcut: "/favicon.ico",
   },
   openGraph: {
     title: "OWNpizza",
