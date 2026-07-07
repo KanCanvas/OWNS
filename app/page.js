@@ -1,44 +1,19 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useContext } from "react";
 import axios from "axios";
+import { CartContext } from "./context/CartProvider";
+import { useSearch } from "./context/SearchProvider";
+import ProductModal from "../components/ProductModal";
+import styles from "./page.module.css";
+import { formatPrice } from "../lib/formatPrice";
+import { notifyCartChange } from "../lib/cart-storage";
+import { drinks, filterDrinks } from "../lib/drinks";
 
-const categories = ["Все", "Мясные", "Острые", "Вегетарианские", "С курицей"];
-
-const pizzas = [
-  {
-    name: "Сырный цыпленок",
-    description:
-      "Цыпленок, сырный соус, сыры чеддер и пармезан, орегано, соус томатный.",
-    price: 1500,
-    image: "/img/pizza 1.png",
-    action: "Добавить"
-  },
-  {
-    name: "Диабло",
-    description:
-      "Острая чоризо, острый перец халапеньо, соус барбекю, томаты, моцарелла.",
-    price: 1500,
-    image: "/img/pizza 2.png",
-    action: "Добавить"
-  },
-  {
-    name: "Чизбургер-пицца",
-    description:
-      "Мясной соус болоньезе бургер, моцарелла и фирменный томатный соус.",
-    price: 1500,
-    image: "/img/pizza 3.png",
-    counter: 1
-  },
-  {
-    name: "Сырный цыпленок",
-    description:
-      "Цыпленок, шампиньоны, сыры чеддер и пармезан, томатный соус.",
-    price: 1500,
-    image: "/img/pizza 4.png",
-    action: "Добавить"
-  }
-];
+const CATALOGS = {
+  PIZZAS: "pizzas",
+  DRINKS: "drinks",
+};
 
 function setWithExpiry(key, value, ttl) {
   if (typeof window === "undefined") return;
@@ -61,7 +36,6 @@ function getWithExpiry(key) {
   const item = JSON.parse(itemStr);
   const now = new Date();
 
-  // если время истекло
   if (now.getTime() > item.expiry) {
     localStorage.removeItem(key);
     return null;
@@ -71,16 +45,28 @@ function getWithExpiry(key) {
 }
 
 export default function HomePage() {
+  const { filteredPizzas, pizzas, searchQuery } = useSearch();
+  const [activeCatalog, setActiveCatalog] = useState(CATALOGS.PIZZAS);
+  const [selectedProduct, setSelectedProduct] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [ingredients, setIngredients] = useState([]);
   const [selectedIngredients, setSelectedIngredients] = useState([]);
   const [isLoadingIngredients, setIsLoadingIngredients] = useState(false);
   const [ingredientsError, setIngredientsError] = useState("");
+  const { cartItem } = useContext(CartContext);
+  const [cartItems, setCartItems] = useState({});
 
-    const [countPizza, setCountPizza] = useState(() => {
-      const savedCount = getWithExpiry("countPizza");
-      return savedCount > 0 ? Number(savedCount) : 0;
-    });
+  const filteredDrinks = useMemo(
+    () => filterDrinks(searchQuery),
+    [searchQuery]
+  );
+
+  const catalogProducts = useMemo(() => {
+    return activeCatalog === CATALOGS.DRINKS ? filteredDrinks : filteredPizzas;
+  }, [activeCatalog, filteredDrinks, filteredPizzas]);
+
+  const catalogTitle =
+    activeCatalog === CATALOGS.DRINKS ? "Напитки" : "Пиццы";
 
   const selectedPreview = useMemo(
     () => selectedIngredients.join(", "),
@@ -138,95 +124,187 @@ export default function HomePage() {
     );
   };
 
+  const getProductCount = (productId) => {
+    const rawCount = cartItems[productId]?.count ?? 0;
+    const safeCount = Number(rawCount);
+    if (!Number.isFinite(safeCount) || safeCount <= 0) return 0;
+    return safeCount > 10 ? 10 : safeCount;
+  };
+
+  const setProductCount = (product, nextCount) => {
+    setCartItems((prev) => {
+      const safeCount = Math.max(0, Math.min(10, Number(nextCount) || 0));
+
+      if (safeCount <= 0) {
+        const nextItems = { ...prev };
+        delete nextItems[product.id];
+        return nextItems;
+      }
+
+      return {
+        ...prev,
+        [product.id]: {
+          ...product,
+          count: safeCount,
+        },
+      };
+    });
+  };
+
+  const openProductModal = (product) => {
+    setSelectedProduct(product);
+  };
+
+  const closeProductModal = () => {
+    setSelectedProduct(null);
+  };
+
   useEffect(() => {
-    if(countPizza > 0) {
-      setWithExpiry("countPizza", countPizza, 60 * 60 * 1000);
+    const savedCart = getWithExpiry("cartItems");
+    if (!savedCart || typeof savedCart !== "object" || Array.isArray(savedCart)) {
+      return;
     }
-  }, [countPizza]);
+
+    const productById = Object.fromEntries(
+      [...pizzas, ...drinks].map((product) => [product.id, product])
+    );
+    const nextCart = {};
+
+    for (const [productId, savedItem] of Object.entries(savedCart)) {
+      const product = productById[productId];
+      if (!product) continue;
+
+      const savedCount = Number(savedItem?.count ?? 0);
+      if (!Number.isFinite(savedCount) || savedCount <= 0) continue;
+
+      nextCart[productId] = {
+        ...product,
+        count: savedCount > 10 ? 10 : savedCount,
+      };
+    }
+
+    setCartItems(nextCart);
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    setWithExpiry("cartItems", cartItems, 60 * 60 * 1000);
+
+    if (Object.keys(cartItems).length > 0) {
+      localStorage.setItem("cartElements", JSON.stringify(cartItems));
+      setTimeout(() => {
+        localStorage.removeItem("cartElements");
+        localStorage.removeItem("cartItems");
+        setCartItems({});
+      }, 500000);
+    }
+
+    notifyCartChange();
+  }, [cartItems]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    if (Object.keys(cartItem).length !== 0) {
+      setCartItems({});
+      localStorage.removeItem("cartElements");
+      localStorage.removeItem("cartItems");
+      notifyCartChange();
+    }
+  }, [cartItem]);
 
   return (
     <section className="home-mock">
-      <h1 className="home-title">Все пиццы</h1>
+      <h1 className="home-title">{catalogTitle}</h1>
 
-      <div className="chips">
-        {categories.map((category, index) => (
-          <button
-            key={category}
-            type="button"
-            className={`chip ${index === 0 ? "active" : ""}`}
-          >
-            {category}
-          </button>
-        ))}
+      <div className={`chips ${styles.catalogTabs}`}>
         <button
-          className="tiny-action tiny-action-accent chips-constructor-btn"
           type="button"
-          onClick={openConstructorModal}
+          className={`chip ${activeCatalog === CATALOGS.PIZZAS ? "active" : ""}`}
+          onClick={() => setActiveCatalog(CATALOGS.PIZZAS)}
         >
-          Собрать
+          Пиццы
         </button>
+        <button
+          type="button"
+          className={`chip ${activeCatalog === CATALOGS.DRINKS ? "active" : ""}`}
+          onClick={() => setActiveCatalog(CATALOGS.DRINKS)}
+        >
+          Напитки
+        </button>
+        {activeCatalog === CATALOGS.PIZZAS ? (
+          <button
+            className="tiny-action tiny-action-accent chips-constructor-btn"
+            type="button"
+            onClick={openConstructorModal}
+          >
+            Собрать
+          </button>
+        ) : null}
       </div>
 
-      <div className="home-grid">
-        {pizzas.map((pizza) => (
-          <article key={pizza.name + pizza.image} className="pizza-tile">
-            <div className="pizza-image-wrap">
-              <img
-                src={pizza.image}
-                alt={pizza.name}
-                className="pizza-image"
-              />
-            </div>
-            <h3>{pizza.name}</h3>
-            <p>{pizza.description}</p>
-            <div className="pizza-bottom">
-              <strong>от {pizza.price} ₸</strong>
-              {pizza.counter ? (
-                <div className="counter">
-                  <button type="button" onClick={() => { getWithExpiry("countPizza") === null? setCountPizza(0) : setCountPizza(prev => prev - 1)}}>-</button>
-                  <span>{getWithExpiry("countPizza") === null? 0 : countPizza < 0 ? 0: countPizza < 11 ? countPizza : 10}</span>
-                  {getWithExpiry("countPizza") === null? <button type="button" onClick={() => {setCountPizza(1); localStorage.setItem("pizza", JSON.stringify(pizza))}}>+</button> : countPizza < 10 && <button type="button" onClick={() => {setCountPizza(prev => prev + 1)}}>+</button>}
+      <div className={styles.grid}>
+        {catalogProducts.length > 0 ? (
+          catalogProducts.map((product) => {
+            const count = getProductCount(product.id);
+            const isDrink = product.category === "drinks";
+
+            return (
+              <article
+                key={product.id}
+                className={`${styles.card} ${isDrink ? styles.cardDrink : styles.cardPizza}`}
+                role="button"
+                tabIndex={0}
+                onClick={() => openProductModal(product)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    openProductModal(product);
+                  }
+                }}
+              >
+                <div className={styles.imageBlock}>
+                  <img src={product.image} alt={product.name} />
+                  {count > 0 ? (
+                    <span className={styles.cartBadge}>×{count}</span>
+                  ) : null}
                 </div>
-              ) : (
-                <div className="pizza-actions">
-                  <button className="tiny-action" type="button">
-                    {pizza.action}
-                  </button>
-                  <button
-                    className="tiny-action tiny-action-accent"
-                    type="button"
-                    onClick={openConstructorModal}
-                  >
-                    Собрать
-                  </button>
+                <div className={styles.body}>
+                  <h3>{product.name}</h3>
+                  {product.size ? (
+                    <p className={styles.size}>{product.size}</p>
+                  ) : null}
+                  <p>{product.description}</p>
+                  <div className={styles.bottom}>
+                    <strong>{formatPrice(product.price)} ₸</strong>
+                    <span className={styles.openHint}>Подробнее</span>
+                  </div>
                 </div>
-              )}
-            </div>
-          </article>
-        ))}
+              </article>
+            );
+          })
+        ) : (
+          <p className={styles.emptySearch}>
+            По запросу «{searchQuery}» ничего не найдено.
+          </p>
+        )}
       </div>
 
-      <div className="pagination">
-        <button type="button" className="page-arrow">
-          {"<"}
-        </button>
-        <button type="button" className="page-btn active">
-          1
-        </button>
-        <button type="button" className="page-btn">
-          2
-        </button>
-        <button type="button" className="page-btn">
-          3
-        </button>
-        <button type="button" className="page-arrow">
-          {">"}
-        </button>
-        <span className="page-total">10 из 65</span>
-      </div>
+      <ProductModal
+        product={selectedProduct}
+        initialCount={
+          selectedProduct ? getProductCount(selectedProduct.id) : 0
+        }
+        onClose={closeProductModal}
+        onChangeCount={setProductCount}
+      />
 
       {isModalOpen && (
-        <div className="constructor-modal-backdrop" onClick={closeConstructorModal}>
+        <div
+          className="constructor-modal-backdrop"
+          onClick={closeConstructorModal}
+        >
           <div
             className="constructor-modal"
             onClick={(event) => event.stopPropagation()}
@@ -245,9 +323,7 @@ export default function HomePage() {
             <div className="constructor-layout">
               <div className="constructor-preview">
                 <div className="constructor-preview-plate">
-                  <div className="constructor-preview-pizza">
-                    Твоя пицца
-                  </div>
+                  <div className="constructor-preview-pizza">Твоя пицца</div>
                 </div>
                 <p className="constructor-preview-note">
                   Здесь будет отображаться картинка собранной пиццы.
@@ -272,7 +348,8 @@ export default function HomePage() {
                   <>
                     <div className="ingredients-grid">
                       {ingredients.map((ingredient) => {
-                        const isActive = selectedIngredients.includes(ingredient);
+                        const isActive =
+                          selectedIngredients.includes(ingredient);
                         return (
                           <button
                             key={ingredient}

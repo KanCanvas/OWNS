@@ -1,0 +1,235 @@
+.dialog {
+  position: relative;
+  width: min(420px, 100%);
+  max-height: 92dvh;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  padding: 0;
+  background: #fff;
+  border: 1px solid #f0cfa8;
+  border-radius: 20px;
+  box-shadow:
+    0 24px 70px rgba(160, 80, 40, 0.32),
+    0 0 0 1px rgba(255, 255, 255, 0.85) inset;
+}
+
+.head {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  justify-content: flex-end;
+  padding: 12px 12px 0;
+  background: linear-gradient(180deg, #fff 70%, rgba(255, 255, 255, 0));
+}
+
+.closeBtn {
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 12px;
+  background: rgba(244, 240, 236, 0.95);
+  color: #6d6560;
+  font-size: 1.45rem;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease,
+    transform 0.2s ease;
+}
+
+.closeBtn:hover {
+  background: #ebe6e0;
+  color: #1f1f1f;
+  transform: rotate(90deg);
+}
+
+.imageWrap {
+  margin: 0 18px;
+  aspect-ratio: 1 / 1;
+  border-radius: 18px;
+  overflow: hidden;
+  background: linear-gradient(180deg, #fff8f2 0%, #fff 100%);
+  border: 1px solid #ffe9de;
+}
+
+.image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  padding: 12px;
+  box-sizing: border-box;
+}
+
+.content {
+  padding: 16px 18px 8px;
+  text-align: left;
+}
+
+.category {
+  margin: 0 0 6px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #ff8a4d;
+}
+
+.title {
+  margin: 0 0 6px;
+  font-size: 1.45rem;
+  font-weight: 800;
+  color: #1a1a1a;
+  line-height: 1.25;
+}
+
+.size {
+  margin: 0 0 10px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #ff7a36;
+}
+
+.description {
+  margin: 0;
+  font-size: 0.88rem;
+  line-height: 1.55;
+  color: #7a7068;
+}
+
+.footer {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 18px calc(18px + env(safe-area-inset-bottom));
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.92) 0%, #fff 28%);
+  border-top: 1px solid #f6ebe0;
+}
+
+.prices {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.priceRow {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.priceLabel {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #9a8f86;
+  letter-spacing: 0.02em;
+}
+
+.unitPrice {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #4a4a4a;
+}
+
+.totalPrice {
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: #f25c2a;
+}
+
+.counter {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.minusBtn,
+.plusBtn {
+  width: 44px;
+  height: 44px;
+  border: none;
+  border-radius: 14px;
+  font-size: 1.35rem;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease,
+    opacity 0.15s ease;
+}
+
+.minusBtn {
+  background: #f4f0ec;
+  color: #6d6560;
+}
+
+.minusBtn:hover:not(:disabled) {
+  background: #ebe6e0;
+  color: #1f1f1f;
+}
+
+.plusBtn {
+  background: linear-gradient(135deg, #ff9a5c 0%, #ff6b2c 55%, #f25c2a 100%);
+  color: #fff;
+  box-shadow: 0 8px 18px rgba(255, 107, 44, 0.35);
+}
+
+.plusBtn:hover:not(:disabled) {
+  transform: scale(1.04);
+  box-shadow: 0 10px 22px rgba(255, 107, 44, 0.42);
+}
+
+.plusBtn:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.minusBtn:disabled,
+.plusBtn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.countValue {
+  min-width: 28px;
+  text-align: center;
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #1a1a1a;
+}
+
+@media (max-width: 740px) {
+  .dialog {
+    width: 100%;
+    border-radius: 20px 20px 0 0;
+  }
+
+  .head {
+    padding-top: calc(10px + env(safe-area-inset-top));
+  }
+
+  .imageWrap {
+    margin: 0 14px;
+  }
+
+  .content {
+    padding: 14px 16px 6px;
+  }
+
+  .footer {
+    padding: 14px 16px calc(16px + env(safe-area-inset-bottom));
+  }
+
+  .title {
+    font-size: 1.25rem;
+  }
+}

@@ -1,0 +1,8 @@
+-- AlterTable
+ALTER TABLE "User" ALTER COLUMN "homeaddress" DROP NOT NULL,
+ALTER COLUMN "homeentrance" DROP NOT NULL,
+ALTER COLUMN "homeapartment" DROP NOT NULL,
+ALTER COLUMN "officeaddress" DROP NOT NULL,
+ALTER COLUMN "officename" DROP NOT NULL,
+ALTER COLUMN "officefloor" DROP NOT NULL,
+ALTER COLUMN "officecabinet" DROP NOT NULL;

@@ -4,8 +4,15 @@
   "main": "server.js",
   "scripts": {
     "dev": "cross-env NODE_ENV=development nodemon server.js",
-    "build": "next build",
-    "start": "cross-env NODE_ENV=production node server.js",
+    "dev:full": "npm run db:up && npm run db:push && npm run dev",
+    "build": "rm -rf .next && next build",
+    "start": "node server.js",
+    "bot": "node bot.js",
+    "db:up": "docker compose up -d",
+    "db:down": "docker compose down",
+    "db:logs": "docker compose logs -f postgres",
+    "db:push": "prisma db push",
+    "db:reset": "docker compose up -d && prisma db push --force-reset && node prisma/seed.js",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio",
@@ -18,14 +25,21 @@
   "dependencies": {
     "@prisma/client": "^6.19.3",
     "axios": "^1.15.2",
+    "bcryptjs": "^3.0.3",
+    "cookie-parser": "^1.4.7",
+    "dotenv": "^17.4.2",
     "express": "^5.2.1",
+    "jsonwebtoken": "^9.0.3",
     "next": "^16.2.4",
+    "prisma": "^6.19.3",
     "react": "^19.2.5",
-    "react-dom": "^19.2.5"
+    "react-dom": "^19.2.5",
+    "react-hook-form": "^7.75.0",
+    "telegraf": "^4.16.3",
+    "ws": "^8.21.0"
   },
   "devDependencies": {
     "cross-env": "^10.1.0",
-    "nodemon": "^3.1.14",
-    "prisma": "^6.19.3"
+    "nodemon": "^3.1.14"
   }
 }

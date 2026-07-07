@@ -1,0 +1,203 @@
+.grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 34px;
+}
+
+.card {
+  border-radius: 16px;
+  overflow: hidden;
+  background: #fff;
+  border: 1px solid #f0e8e0;
+  cursor: pointer;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  border-color: #ffd4bf;
+  box-shadow: 0 10px 24px rgba(201, 113, 59, 0.12);
+}
+
+.card:focus-visible {
+  outline: 2px solid #ff8a4d;
+  outline-offset: 2px;
+}
+
+.catalogTabs {
+  margin-bottom: 22px;
+}
+
+.imageBlock {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 860 / 710;
+  overflow: hidden;
+  background: linear-gradient(180deg, #1f1b18 0%, #141210 100%);
+  line-height: 0;
+}
+
+.cardPizza .imageBlock img {
+  position: absolute;
+  left: 50%;
+  top: 41%;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center;
+  transform: translate(-50%, -50%) scale(1.62);
+  transform-origin: center center;
+}
+
+.cardDrink .imageBlock {
+  background: linear-gradient(180deg, #fff8f2 0%, #fff 100%);
+}
+
+.cardDrink .imageBlock img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  padding: 12px;
+  box-sizing: border-box;
+  transform: none;
+}
+
+.imageBlock img {
+  display: block;
+}
+
+.cartBadge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 1;
+  min-width: 28px;
+  height: 28px;
+  padding: 0 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #ff9a5c 0%, #ff6b2c 100%);
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 800;
+  box-shadow: 0 4px 12px rgba(255, 107, 44, 0.35);
+}
+
+.body {
+  padding: 10px 12px 12px;
+}
+
+.body h3 {
+  margin: 0 0 4px;
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.size {
+  margin: 0 0 6px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #ff8a4d;
+}
+
+.body p {
+  margin: 0 0 10px;
+  color: #a2a2a2;
+  font-size: 0.68rem;
+  line-height: 1.4;
+}
+
+.bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.bottom strong {
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.openHint {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #ff8a4d;
+  letter-spacing: 0.02em;
+}
+
+.emptySearch {
+  grid-column: 1 / -1;
+  margin: 0;
+  padding: 28px 16px;
+  text-align: center;
+  color: #8a786f;
+  font-size: 0.92rem;
+  border: 1px dashed #ececec;
+  border-radius: 14px;
+  background: #fafafa;
+}
+
+@media (max-width: 1100px) {
+  .grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+  }
+}
+
+@media (max-width: 740px) {
+  .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    margin-bottom: 24px;
+  }
+
+  .card {
+    border-radius: 14px;
+  }
+
+  .body {
+    padding: 10px 10px 12px;
+  }
+
+  .body h3 {
+    font-size: 0.88rem;
+  }
+
+  .body p {
+    font-size: 0.65rem;
+    margin-bottom: 8px;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .bottom strong {
+    font-size: 0.88rem;
+  }
+}
+
+@media (max-width: 400px) {
+  .grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .body h3 {
+    font-size: 0.95rem;
+  }
+
+  .body p {
+    font-size: 0.72rem;
+    -webkit-line-clamp: unset;
+  }
+}
